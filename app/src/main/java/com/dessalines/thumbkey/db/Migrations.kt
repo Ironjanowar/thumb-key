@@ -311,3 +311,12 @@ val MIGRATION_27_28 =
             )
         }
     }
+
+val MIGRATION_28_29 =
+    object : Migration(28, 29) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                "ALTER TABLE AppSettings ADD COLUMN editing_mode_enabled INTEGER NOT NULL DEFAULT $DEFAULT_EDITING_MODE_ENABLED",
+            )
+        }
+    }

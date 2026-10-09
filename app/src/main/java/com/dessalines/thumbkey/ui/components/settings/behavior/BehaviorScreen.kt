@@ -14,6 +14,7 @@ import androidx.compose.material.icons.automirrored.outlined.RotateRight
 import androidx.compose.material.icons.outlined.Abc
 import androidx.compose.material.icons.outlined.BorderInner
 import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SpaceBar
 import androidx.compose.material.icons.outlined.SwapHoriz
 import androidx.compose.material.icons.outlined.Swipe
@@ -45,6 +46,7 @@ import com.dessalines.thumbkey.db.DEFAULT_CIRCULAR_DRAG_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_CLOCKWISE_DRAG_ACTION
 import com.dessalines.thumbkey.db.DEFAULT_COUNTERCLOCKWISE_DRAG_ACTION
 import com.dessalines.thumbkey.db.DEFAULT_DRAG_RETURN_ENABLED
+import com.dessalines.thumbkey.db.DEFAULT_EDITING_MODE_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_GHOST_KEYS_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_MIN_SWIPE_LENGTH
 import com.dessalines.thumbkey.db.DEFAULT_SLIDE_BACKSPACE_DEADZONE_ENABLED
@@ -103,6 +105,7 @@ fun BehaviorScreen(
         CircularDragAction.entries[settings?.counterclockwiseDragAction ?: DEFAULT_COUNTERCLOCKWISE_DRAG_ACTION]
     var ghostKeysEnabledState = (settings?.ghostKeysEnabled ?: DEFAULT_GHOST_KEYS_ENABLED).toBool()
     var slideHoldEnabledState = (settings?.slideHoldEnabled ?: DEFAULT_SLIDE_HOLD_ENABLED).toBool()
+    var editingModeEnabledState = (settings?.editingModeEnabled ?: DEFAULT_EDITING_MODE_ENABLED).toBool()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -129,6 +132,7 @@ fun BehaviorScreen(
                 counterclockwiseDragAction = counterclockwiseDragActionState.ordinal,
                 ghostKeysEnabled = ghostKeysEnabledState.toInt(),
                 slideHoldEnabled = slideHoldEnabledState.toInt(),
+                editingModeEnabled = editingModeEnabledState.toInt(),
             ),
         )
     }
@@ -198,6 +202,25 @@ fun BehaviorScreen(
                         icon = {
                             Icon(
                                 imageVector = Icons.Outlined.Abc,
+                                contentDescription = null,
+                            )
+                        },
+                    )
+                    SwitchPreference(
+                        value = editingModeEnabledState,
+                        onValueChange = {
+                            editingModeEnabledState = it
+                            updateBehavior()
+                        },
+                        title = {
+                            Text(stringResource(R.string.editing_mode_enable))
+                        },
+                        summary = {
+                            Text(stringResource(R.string.editing_mode_enable_description))
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Edit,
                                 contentDescription = null,
                             )
                         },

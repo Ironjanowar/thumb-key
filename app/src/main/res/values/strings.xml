@@ -83,6 +83,8 @@
     <string name="spacebar_multitaps">Spacebar multi-taps</string>
     <string name="switch_to_letters_after_space">Switch to letters after a space</string>
     <string name="switch_to_letters_after_space_description">Return to the letter keyboard after entering a space in numeric mode</string>
+    <string name="editing_mode_enable">Enable editing mode</string>
+    <string name="editing_mode_enable_description">Add an editing-mode gesture to compatible keyboard layouts</string>
     <string name="done">Done</string>
     <string name="backdrop">Keyboard backdrop</string>
     <string name="key_padding">Key padding: %1$s</string>

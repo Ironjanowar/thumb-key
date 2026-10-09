@@ -73,6 +73,8 @@
     <string name="spacebar_multitaps">Barra de espacio multitáctil</string>
     <string name="switch_to_letters_after_space">Volver a las letras después de un espacio</string>
     <string name="switch_to_letters_after_space_description">Vuelve al teclado de letras después de introducir un espacio en el modo numérico</string>
+    <string name="editing_mode_enable">Activar el modo de edición</string>
+    <string name="editing_mode_enable_description">Añade un gesto de modo de edición a los diseños de teclado compatibles</string>
     <string name="done">Hecho</string>
     <string name="backdrop">Fondo de teclado</string>
     <string name="key_padding">Acolchado de teclas: %1$s</string>

@@ -239,6 +239,10 @@ If your field needs characters that are not here, adding them is a few lines of 
 - For those use to tapping on the hand key to hide the MessagEase Keyboard and make more screen real estate available, this can be done by using the Android back key or on Android 10 and higher using the guesture navigation for back.
 - You can use `Modify keys` and `HideKeyboard` action to achieve MessagEase experience
 
+### Editing mode
+
+Editing mode is disabled by default. Enable it under **Settings → Behavior → Enable editing mode**. Compatible layouts then add a left swipe marked ✎ to a numeric key whose left swipe is otherwise unused. Layouts without a numeric key, or whose numeric key already has a left-swipe action, remain unchanged.
+
 ### Modify keys
 
 Keyboard keys can be customized using YAML.
@@ -351,6 +355,8 @@ This swaps the 'switch language' and 'toggle emoji' actions on the top-right key
 - `ToggleEmojiMode`
 - `ToggleClipboardMode`
 - `ToggleSketchMode`
+- `ToggleEditingMode` # Enter editing mode. This does not toggle it off.
+- `ExitEditingMode` # Exit editing mode and disarm the mark.
 - `ToggleCapsLock`
 - `ToggleShiftModeTrue`
 - `ToggleShiftModeFalse`
@@ -382,6 +388,28 @@ This swaps the 'switch language' and 'toggle emoji' actions on the top-right key
 - `HideKeyboard`
 - `StartComposeCombo` # The compose key. See [Compose combo](#compose-combo).
 - `Noop` # No operation. Does nothing.
+- `EditingToggleMark`
+- `EditingSelectAll`
+- `EditingSwapEnds`
+- `EditingCharacterBackward`
+- `EditingCharacterForward`
+- `EditingWordBackward`
+- `EditingWordForward`
+- `EditingVisualUp`
+- `EditingVisualDown`
+- `EditingLineStart`
+- `EditingLineEnd`
+- `EditingTextStart`
+- `EditingTextEnd`
+- `EditingCopy`
+- `EditingCut`
+- `EditingPaste`
+- `EditingUndo`
+- `EditingRedo`
+- `EditingDeletePreviousGrapheme`
+- `EditingDeleteNextGrapheme`
+- `EditingDeletePreviousWord`
+- `EditingDeleteNextWord`
 
 `keyAction` and `text` cannot be used together.
 

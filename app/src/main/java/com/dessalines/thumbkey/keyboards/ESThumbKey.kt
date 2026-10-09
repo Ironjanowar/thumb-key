@@ -70,7 +70,7 @@ val KB_ES_THUMBKEY_MAIN =
                         ),
                     right = KeyC("á"),
                 ),
-                NUMERIC_KEY_ITEM,
+                NUMERIC_EDITING_KEY_ITEM,
             ),
             listOf(
                 KeyItemC(
@@ -165,7 +165,7 @@ val KB_ES_THUMBKEY_SHIFTED =
                         ),
                     right = KeyC("Á"),
                 ),
-                NUMERIC_KEY_ITEM,
+                NUMERIC_EDITING_KEY_ITEM,
             ),
             listOf(
                 KeyItemC(

@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontFamily
 import arrow.optics.optics
 import com.dessalines.thumbkey.R
+import com.dessalines.thumbkey.editing.EditingCommand
 import com.dessalines.thumbkey.textprocessors.TextProcessor
 
 @optics
@@ -134,6 +135,8 @@ data class KeyC(
             FontSizeVariant.LARGE -> ColorVariant.PRIMARY
             else -> ColorVariant.SECONDARY
         },
+    @param:StringRes val contentDescriptionRes: Int? = null,
+    val emphasized: Boolean = false,
 ) {
     constructor(
         text: String,
@@ -148,6 +151,8 @@ data class KeyC(
                 FontSizeVariant.LARGE -> ColorVariant.PRIMARY
                 else -> ColorVariant.SECONDARY
             },
+        @StringRes contentDescriptionRes: Int? = null,
+        emphasized: Boolean = false,
     ) : this(
         KeyAction.CommitText(text),
         swipeReturnAction,
@@ -155,6 +160,8 @@ data class KeyC(
         capsModeDisplay,
         size,
         color,
+        contentDescriptionRes,
+        emphasized,
     )
 
     companion object
@@ -224,6 +231,14 @@ sealed class KeyAction {
 
     class ToggleSketchMode(
         val enable: Boolean,
+    ) : KeyAction()
+
+    data class ToggleEditingMode(
+        val enable: Boolean,
+    ) : KeyAction()
+
+    data class Editing(
+        val command: EditingCommand,
     ) : KeyAction()
 
     // The keys of sketch mode, handled by its screen
@@ -352,6 +367,7 @@ enum class KeyboardMode {
     ALTED,
     CLIPBOARD,
     SKETCH,
+    EDITING,
 }
 
 enum class SwipeDirection {

@@ -79,6 +79,7 @@ import com.dessalines.thumbkey.keyboards.EMOJI_BACK_KEY_ITEM
 import com.dessalines.thumbkey.keyboards.KB_EN_THUMBKEY_MAIN
 import com.dessalines.thumbkey.keyboards.NUMERIC_KEY_ITEM
 import com.dessalines.thumbkey.keyboards.RETURN_KEY_ITEM
+import com.dessalines.thumbkey.keyboards.editingKeyboard
 import com.dessalines.thumbkey.utils.CircularDragAction
 import com.dessalines.thumbkey.utils.ColorVariant
 import com.dessalines.thumbkey.utils.KeyAction
@@ -185,6 +186,14 @@ fun KeyboardScreen(
                     mode = KeyboardMode.MAIN
                     keyboardDefinition.modes.main
                 }
+            }
+
+            KeyboardMode.EDITING -> {
+                editingKeyboard(
+                    markActive = ctx.editingMarkActive.value,
+                    markLabel = stringResource(R.string.editing_mark),
+                    selectingLabel = stringResource(R.string.editing_selecting),
+                )
             }
 
             else -> {
@@ -1080,25 +1089,29 @@ fun KeyboardScreen(
                                         },
                                         onToggleHideLetters = onToggleHideLetters,
                                         onKeyEvent = { action ->
-                                            when (mode) {
-                                                KeyboardMode.CTRLED, KeyboardMode.ALTED -> {
-                                                    if (action is KeyAction.SendEvent) {
-                                                        mode = KeyboardMode.MAIN
+                                            if (action is KeyAction.ToggleEditingMode) {
+                                                mode = if (action.enable) KeyboardMode.EDITING else KeyboardMode.MAIN
+                                            } else {
+                                                when (mode) {
+                                                    KeyboardMode.CTRLED, KeyboardMode.ALTED -> {
+                                                        if (action is KeyAction.SendEvent) {
+                                                            mode = KeyboardMode.MAIN
+                                                        }
                                                     }
-                                                }
 
-                                                KeyboardMode.NUMERIC -> {
-                                                    if (
-                                                        switchToLettersAfterSpace &&
-                                                        action is KeyAction.CommitText &&
-                                                        action.text == " "
-                                                    ) {
-                                                        capsLock = false
-                                                        mode = KeyboardMode.MAIN
+                                                    KeyboardMode.NUMERIC -> {
+                                                        if (
+                                                            switchToLettersAfterSpace &&
+                                                            action is KeyAction.CommitText &&
+                                                            action.text == " "
+                                                        ) {
+                                                            capsLock = false
+                                                            mode = KeyboardMode.MAIN
+                                                        }
                                                     }
-                                                }
 
-                                                else -> {}
+                                                    else -> {}
+                                                }
                                             }
                                         },
                                         onAutoCapitalize = { enable ->

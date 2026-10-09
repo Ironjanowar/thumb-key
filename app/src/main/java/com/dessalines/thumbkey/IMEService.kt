@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.inputmethod.CursorAnchorInfo
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -20,6 +21,8 @@ import com.dessalines.thumbkey.db.DEFAULT_CLIPBOARD_HISTORY_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_DISABLE_FULLSCREEN_EDITOR
 import com.dessalines.thumbkey.db.DEFAULT_SHOW_ON_SCREEN_KEYBOARD
 import com.dessalines.thumbkey.db.DEFAULT_USE_PRIVATE_CLIPBOARD
+import com.dessalines.thumbkey.editing.AndroidEditingPort
+import com.dessalines.thumbkey.editing.EditingController
 import com.dessalines.thumbkey.ui.components.keyboard.SketchState
 import com.dessalines.thumbkey.utils.KeyboardDefinition
 import com.dessalines.thumbkey.utils.KeyboardLayout
@@ -61,6 +64,11 @@ class IMEService :
 
     var currentKeyboardDefinition: KeyboardDefinition? = null
 
+    val editingMarkActive = mutableStateOf(false)
+    val editingController: EditingController by lazy {
+        EditingController(AndroidEditingPort(this)) { active -> editingMarkActive.value = active }
+    }
+
     // While set, the keys type into this field of the keyboard's own, like sketch mode's
     // search, instead of the app's
     private var inputRedirect: InputConnection? = null
@@ -68,6 +76,13 @@ class IMEService :
     fun setInputRedirect(connection: InputConnection?) {
         inputRedirect = connection
     }
+
+    /**
+     * True while the keys type into a text field of the keyboard's own, like sketch mode's
+     * search. The editing panel cannot drive the app's editor then, so it stays off.
+     */
+    val isTypingIntoOwnField: Boolean
+        get() = inputRedirect != null
 
     // The framework's connection is null while no text field is bound, and the framework itself
     // calls this. Kotlin would check a platform value returned as non-null and throw, so pass it
@@ -90,6 +105,7 @@ class IMEService :
         restarting: Boolean,
     ) {
         super.onStartInput(attribute, restarting)
+        editingController.startSession()
         setInputRedirect(null)
         // A new keyboard opens on the letters: close sketch mode's search and lists, but keep
         // its drawing
@@ -187,6 +203,23 @@ class IMEService :
         // Running after it would let the processor write its pending text a second time.
         currentKeyboardDefinition?.settings?.textProcessor?.handleFinishInput(this)
         super.onFinishInputView(finishingInput)
+    }
+
+    override fun onFinishInput() {
+        editingController.finishSession()
+        super.onFinishInput()
+    }
+
+    override fun onUpdateSelection(
+        oldSelStart: Int,
+        oldSelEnd: Int,
+        newSelStart: Int,
+        newSelEnd: Int,
+        candidatesStart: Int,
+        candidatesEnd: Int,
+    ) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        editingController.onSelectionUpdate(newSelStart, newSelEnd)
     }
 
     private var ignoreCursorMove: Boolean = false

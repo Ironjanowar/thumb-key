@@ -1281,6 +1281,28 @@ fun performKeyAction(
             onToggleSketchMode(enable)
         }
 
+        is KeyAction.ToggleEditingMode -> {
+            // The panel drives the app's editor, so it stays off while the keys type into a
+            // field of the keyboard's own, like sketch mode's search
+            if (action.enable && ime.isTypingIntoOwnField) {
+                Log.d(TAG, "Ignoring editing mode while typing into the keyboard's own field")
+            } else {
+                keyboardSettings.textProcessor?.handleFinishInput(ime)
+                if (!action.enable) ime.editingController.disarm()
+                onKeyEvent(action)
+            }
+        }
+
+        is KeyAction.Editing -> {
+            if (ime.isTypingIntoOwnField) {
+                Log.d(TAG, "Ignoring editing command while typing into the keyboard's own field")
+            } else {
+                keyboardSettings.textProcessor?.handleFinishInput(ime)
+                ime.editingController.perform(action.command)
+                onKeyEvent(action)
+            }
+        }
+
         is KeyAction.Sketch -> {
             onSketchAction(action)
         }

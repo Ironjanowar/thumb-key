@@ -46,6 +46,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -205,7 +208,8 @@ fun KeyboardKey(
             MaterialTheme.colorScheme.inversePrimary
         }
 
-    val keyBorderColour = MaterialTheme.colorScheme.outline
+    val effectiveKeyBorderWidth = if (key.center.emphasized) max(keyBorderWidth, 2f) else keyBorderWidth
+    val keyBorderColour = if (key.center.emphasized) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
     val keySize = (keyHeight + keyWidth) / 2.0
     val view = LocalView.current
     val audioManager = ctx.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -384,9 +388,9 @@ fun KeyboardKey(
             .padding(keyPadding.dp)
             .clip(RoundedCornerShape(keyRadius.dp))
             .then(
-                if (keyBorderWidth > 0.0) {
+                if (effectiveKeyBorderWidth > 0.0) {
                     Modifier.border(
-                        keyBorderWidth.dp,
+                        effectiveKeyBorderWidth.dp,
                         keyBorderColour,
                         shape = RoundedCornerShape(keyRadius.dp),
                     )
@@ -1039,6 +1043,7 @@ fun KeyText(
     hideSymbols: Boolean,
     capsLock: Boolean,
 ) {
+    val accessibilityDescription = key.contentDescriptionRes?.let { stringResource(it) }
     val color = colorVariantToColor(colorVariant = key.color)
     val isUpperCase =
         when (key.display) {
@@ -1070,7 +1075,7 @@ fun KeyText(
         is KeyDisplay.IconDisplay -> {
             Icon(
                 imageVector = display.icon,
-                contentDescription = display.icon.name,
+                contentDescription = accessibilityDescription ?: display.icon.name,
                 tint = color,
                 modifier = Modifier.size(fontSize),
             )
@@ -1101,6 +1106,12 @@ fun KeyText(
                     fontSize = spSize,
                     lineHeight = spSize,
                     color = color,
+                    modifier =
+                        if (accessibilityDescription != null) {
+                            Modifier.clearAndSetSemantics { contentDescription = accessibilityDescription }
+                        } else {
+                            Modifier
+                        },
                 )
             }
         }

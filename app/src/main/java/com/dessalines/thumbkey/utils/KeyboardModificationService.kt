@@ -9,6 +9,7 @@ import arrow.optics.*
 import com.charleskorn.kaml.AnchorsAndAliases
 import com.charleskorn.kaml.Yaml
 import com.charleskorn.kaml.YamlConfiguration
+import com.dessalines.thumbkey.editing.EditingCommand
 import com.dessalines.thumbkey.keyboards.BACKSPACE_KEYC
 import com.dessalines.thumbkey.keyboards.BACKSPACE_TEXT_MANIPULATION_KEYC
 import com.dessalines.thumbkey.keyboards.COMPOSE_COMBO_KEYC
@@ -346,6 +347,8 @@ fun getCommonKeyCFromKeyAction(keyActionSerializable: KeyActionSerializable?): K
         KeyActionSerializable.ToggleEmojiMode -> TOGGLE_EMOJI_MODE_TRUE_KEYC
         KeyActionSerializable.ToggleClipboardMode -> TOGGLE_CLIPBOARD_MODE_TRUE_KEYC
         KeyActionSerializable.ToggleSketchMode -> TOGGLE_SKETCH_MODE_TRUE_KEYC
+        KeyActionSerializable.ToggleEditingMode -> KeyC(action = KeyAction.ToggleEditingMode(true))
+        KeyActionSerializable.ExitEditingMode -> KeyC(action = KeyAction.ToggleEditingMode(false))
         KeyActionSerializable.ToggleCapsLock -> TOGGLE_CAPS_KEYC
         KeyActionSerializable.ToggleShiftModeTrue -> TOGGLE_SHIFT_TRUE_KEYC
         KeyActionSerializable.ToggleShiftModeFalse -> TOGGLE_SHIFT_FALSE_KEYC
@@ -378,8 +381,32 @@ fun getCommonKeyCFromKeyAction(keyActionSerializable: KeyActionSerializable?): K
         KeyActionSerializable.HideKeyboard -> HIDE_KEYBOARD_KEYC
         KeyActionSerializable.StartComposeCombo -> COMPOSE_COMBO_KEYC
         KeyActionSerializable.Noop -> NOOP_KEYC
+        KeyActionSerializable.EditingToggleMark -> editingKey(EditingCommand.ToggleMark)
+        KeyActionSerializable.EditingSelectAll -> editingKey(EditingCommand.SelectAll)
+        KeyActionSerializable.EditingSwapEnds -> editingKey(EditingCommand.SwapEnds)
+        KeyActionSerializable.EditingCharacterBackward -> editingKey(EditingCommand.MoveCharacterBackward)
+        KeyActionSerializable.EditingCharacterForward -> editingKey(EditingCommand.MoveCharacterForward)
+        KeyActionSerializable.EditingWordBackward -> editingKey(EditingCommand.MoveWordBackward)
+        KeyActionSerializable.EditingWordForward -> editingKey(EditingCommand.MoveWordForward)
+        KeyActionSerializable.EditingVisualUp -> editingKey(EditingCommand.MoveVisualUp)
+        KeyActionSerializable.EditingVisualDown -> editingKey(EditingCommand.MoveVisualDown)
+        KeyActionSerializable.EditingLineStart -> editingKey(EditingCommand.MoveLineStart)
+        KeyActionSerializable.EditingLineEnd -> editingKey(EditingCommand.MoveLineEnd)
+        KeyActionSerializable.EditingTextStart -> editingKey(EditingCommand.MoveTextStart)
+        KeyActionSerializable.EditingTextEnd -> editingKey(EditingCommand.MoveTextEnd)
+        KeyActionSerializable.EditingCopy -> editingKey(EditingCommand.Copy)
+        KeyActionSerializable.EditingCut -> editingKey(EditingCommand.Cut)
+        KeyActionSerializable.EditingPaste -> editingKey(EditingCommand.Paste)
+        KeyActionSerializable.EditingUndo -> editingKey(EditingCommand.Undo)
+        KeyActionSerializable.EditingRedo -> editingKey(EditingCommand.Redo)
+        KeyActionSerializable.EditingDeletePreviousGrapheme -> editingKey(EditingCommand.DeletePreviousGrapheme)
+        KeyActionSerializable.EditingDeleteNextGrapheme -> editingKey(EditingCommand.DeleteNextGrapheme)
+        KeyActionSerializable.EditingDeletePreviousWord -> editingKey(EditingCommand.DeletePreviousWord)
+        KeyActionSerializable.EditingDeleteNextWord -> editingKey(EditingCommand.DeleteNextWord)
         null -> null
     }
+
+private fun editingKey(command: EditingCommand) = KeyC(action = KeyAction.Editing(command), display = null)
 
 fun getYaml(): Yaml =
     Yaml(
@@ -549,6 +576,8 @@ enum class KeyActionSerializable {
     ToggleEmojiMode,
     ToggleClipboardMode,
     ToggleSketchMode,
+    ToggleEditingMode,
+    ExitEditingMode,
     ToggleCapsLock,
     ToggleShiftModeFalse,
     ToggleShiftModeTrue,
@@ -581,4 +610,26 @@ enum class KeyActionSerializable {
     DeleteWordAfterCursor,
     StartComposeCombo,
     Noop,
+    EditingToggleMark,
+    EditingSelectAll,
+    EditingSwapEnds,
+    EditingCharacterBackward,
+    EditingCharacterForward,
+    EditingWordBackward,
+    EditingWordForward,
+    EditingVisualUp,
+    EditingVisualDown,
+    EditingLineStart,
+    EditingLineEnd,
+    EditingTextStart,
+    EditingTextEnd,
+    EditingCopy,
+    EditingCut,
+    EditingPaste,
+    EditingUndo,
+    EditingRedo,
+    EditingDeletePreviousGrapheme,
+    EditingDeleteNextGrapheme,
+    EditingDeletePreviousWord,
+    EditingDeleteNextWord,
 }

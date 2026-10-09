@@ -188,21 +188,34 @@ class EditingControllerTest {
     }
 
     @Test
-    fun delayedMutationCallbackDoesNotDisarmAFreshMark() {
+    fun missingMutationCallbackDoesNotHideExternalMoveAfterMarkIsRearmed() {
         val port = FakePort("abc", 0, 2)
         val controller = EditingController(port)
         controller.perform(EditingCommand.ToggleMark)
         controller.perform(EditingCommand.Cut)
         assertFalse(controller.markState.active)
 
-        // The user arms the mark again before the cut's callback arrives
+        // The editor omits the cut callback, then the user arms a fresh mark.
         controller.perform(EditingCommand.ToggleMark)
         assertTrue(controller.markState.active)
 
-        controller.onSelectionUpdate(0, 0)
-        assertTrue(controller.markState.active)
+        controller.onSelectionUpdate(3, 3)
+        assertFalse(controller.markState.active)
+    }
 
-        // A later external move still disarms it
+    @Test
+    fun mutationCallbackBeforeNextCommandIsHarmless() {
+        val port = FakePort("abc", 0, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.Cut)
+        assertFalse(controller.markState.active)
+
+        controller.onSelectionUpdate(0, 0)
+        assertFalse(controller.markState.active)
+
+        controller.perform(EditingCommand.ToggleMark)
+        assertTrue(controller.markState.active)
         controller.onSelectionUpdate(3, 3)
         assertFalse(controller.markState.active)
     }

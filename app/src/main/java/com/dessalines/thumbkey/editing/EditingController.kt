@@ -103,7 +103,8 @@ class EditingController(
         private set
 
     // Ranges this controller asked the editor to apply, in request order, plus whether the
-    // selection change the editor is about to report comes from a successful text mutation.
+    // next selection change comes from a successful text mutation. A new user command expires
+    // the mutation expectation because some editors omit that callback.
     private val pendingSelections = mutableListOf<Pair<Int, Int>>()
     private var awaitingMutationCallback = false
 
@@ -141,6 +142,7 @@ class EditingController(
     }
 
     fun perform(command: EditingCommand) {
+        awaitingMutationCallback = false
         when (command) {
             EditingCommand.ToggleMark -> toggleMark()
 

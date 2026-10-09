@@ -174,6 +174,53 @@ class EditingControllerTest {
     }
 
     @Test
+    fun delayedOlderCallbackAfterLatestAcknowledgementKeepsMarkActiveWhenSnapshotConfirmsLatestRange() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+
+        controller.onSelectionUpdate(2, 3)
+        controller.onSelectionUpdate(2, 4)
+
+        assertEquals(MarkState(anchor = 2, head = 3), controller.markState)
+    }
+
+    @Test
+    fun historicalCallbackAfterLatestAcknowledgementDisarmsWhenSnapshotConfirmsItsRange() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+        controller.onSelectionUpdate(2, 3)
+
+        port.updateSelection(2, 4)
+        controller.onSelectionUpdate(2, 4)
+
+        assertFalse(controller.markState.active)
+    }
+
+    @Test
+    fun historicalCallbackAfterLatestAcknowledgementDisarmsWhenSnapshotIsInvalid() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+        controller.onSelectionUpdate(2, 3)
+
+        port.corrupt()
+        controller.onSelectionUpdate(2, 4)
+
+        assertFalse(controller.markState.active)
+    }
+
+    @Test
     fun externalSelectionMatchingHistoricalPendingRangeDisarmsMark() {
         val port = FakePort("abcdef", 2, 2)
         val controller = EditingController(port)

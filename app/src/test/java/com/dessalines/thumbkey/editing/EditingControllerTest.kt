@@ -144,7 +144,7 @@ class EditingControllerTest {
     }
 
     @Test
-    fun pendingSelectionAcknowledgementsAreMatchedIndividuallyAndExternalMovesDisarm() {
+    fun selectionCallbacksKeepConfirmedMarkAndExternalSnapshotMovesDisarm() {
         val port = FakePort("abcdef", 2, 2)
         val controller = EditingController(port)
         controller.perform(EditingCommand.ToggleMark)
@@ -155,6 +155,7 @@ class EditingControllerTest {
         assertTrue(controller.markState.active)
         controller.onSelectionUpdate(2, 4)
         assertTrue(controller.markState.active)
+        port.updateSelection(0, 0)
         controller.onSelectionUpdate(0, 0)
         assertFalse(controller.markState.active)
     }
@@ -186,6 +187,53 @@ class EditingControllerTest {
         controller.onSelectionUpdate(2, 4)
 
         assertEquals(MarkState(anchor = 2, head = 3), controller.markState)
+    }
+
+    @Test
+    fun delayedCallbacksAfterLatestAcknowledgementKeepMarkWhenSnapshotConfirmsCurrentRange() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+
+        controller.onSelectionUpdate(2, 5)
+        controller.onSelectionUpdate(2, 3)
+        assertTrue(controller.markState.active)
+        controller.onSelectionUpdate(2, 4)
+
+        assertEquals(MarkState(anchor = 2, head = 5), controller.markState)
+    }
+
+    @Test
+    fun expectedCallbackDisarmsMarkWhenSnapshotContradictsCurrentControlledRange() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+
+        port.updateSelection(2, 4)
+        controller.onSelectionUpdate(2, 3)
+
+        assertFalse(controller.markState.active)
+    }
+
+    @Test
+    fun duplicateOutOfOrderCallbacksKeepMarkWhenSnapshotConfirmsCurrentRange() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+
+        listOf(2 to 4, 2 to 3, 2 to 4, 2 to 5, 2 to 3, 2 to 5).forEach { (start, end) ->
+            controller.onSelectionUpdate(start, end)
+            assertEquals(MarkState(anchor = 2, head = 5), controller.markState)
+        }
     }
 
     @Test
@@ -248,7 +296,7 @@ class EditingControllerTest {
     }
 
     @Test
-    fun coalescedAcknowledgementDropsSupersededExpectations() {
+    fun externalMoveToEarlierControlledRangeDisarmsWhenSnapshotConfirmsIt() {
         val port = FakePort("abcdef", 2, 2)
         val controller = EditingController(port)
         controller.perform(EditingCommand.ToggleMark)
@@ -259,7 +307,7 @@ class EditingControllerTest {
         controller.onSelectionUpdate(2, 4)
         assertTrue(controller.markState.active)
 
-        // The superseded expectation must not swallow an external move to that old range
+        port.updateSelection(2, 3)
         controller.onSelectionUpdate(2, 3)
         assertFalse(controller.markState.active)
     }
@@ -276,6 +324,7 @@ class EditingControllerTest {
         controller.perform(EditingCommand.ToggleMark)
         assertTrue(controller.markState.active)
 
+        port.updateSelection(3, 3)
         controller.onSelectionUpdate(3, 3)
         assertFalse(controller.markState.active)
     }
@@ -293,6 +342,7 @@ class EditingControllerTest {
 
         controller.perform(EditingCommand.ToggleMark)
         assertTrue(controller.markState.active)
+        port.updateSelection(3, 3)
         controller.onSelectionUpdate(3, 3)
         assertFalse(controller.markState.active)
     }

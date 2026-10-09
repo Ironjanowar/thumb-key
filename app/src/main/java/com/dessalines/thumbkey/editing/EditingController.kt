@@ -102,26 +102,15 @@ class EditingController(
     var markState: MarkState = MarkState.Inactive
         private set
 
-    // The current range this controller asked the editor to apply, plus whether the next
-    // selection change comes from a successful text mutation. A new user command expires the
-    // mutation expectation because some editors omit that callback.
-    private var pendingSelection: Pair<Int, Int>? = null
-    private var previousSelectionRequest: Pair<Int, Int>? = null
-    private var delayedSelectionCandidate: Pair<Int, Int>? = null
+    // A new user command expires the mutation expectation because some editors omit that callback.
     private var awaitingMutationCallback = false
 
     fun startSession() {
-        pendingSelection = null
-        previousSelectionRequest = null
-        delayedSelectionCandidate = null
         awaitingMutationCallback = false
         updateMark(MarkState.Inactive)
     }
 
     fun finishSession() {
-        pendingSelection = null
-        previousSelectionRequest = null
-        delayedSelectionCandidate = null
         awaitingMutationCallback = false
         updateMark(MarkState.Inactive)
     }
@@ -132,34 +121,15 @@ class EditingController(
         selectionStart: Int,
         selectionEnd: Int,
     ) {
-        val range = normalized(selectionStart, selectionEnd)
-        val expected = pendingSelection
-        if (range == expected) {
-            pendingSelection = null
-            previousSelectionRequest = null
-            return
-        }
-        if (expected != null) {
-            val currentRange = reliableSnapshot()?.let { normalized(it.selectionStart, it.selectionEnd) }
-            if (currentRange == expected) return
-        } else if (range == delayedSelectionCandidate && markState.active) {
-            // A reversal (A -> B -> A) can acknowledge A before B's delayed callback arrives.
-            // Ignore B only while a fresh reliable snapshot still confirms the controlled A.
-            val controlledRange = normalized(markState.anchor, markState.head)
-            val currentRange = reliableSnapshot()?.let { normalized(it.selectionStart, it.selectionEnd) }
-            if (currentRange == controlledRange) {
-                delayedSelectionCandidate = null
-                return
-            }
-        }
-        pendingSelection = null
-        previousSelectionRequest = null
-        delayedSelectionCandidate = null
         if (awaitingMutationCallback) {
             awaitingMutationCallback = false
             return
         }
-        if (markState.active) disarm()
+        if (!markState.active) return
+
+        val controlledRange = normalized(markState.anchor, markState.head)
+        val currentRange = reliableSnapshot()?.let { normalized(it.selectionStart, it.selectionEnd) }
+        if (currentRange != controlledRange) disarm()
     }
 
     fun perform(command: EditingCommand) {
@@ -198,7 +168,7 @@ class EditingController(
             // Collapsing the range moves the editor's cursor, so it needs confirmed offsets
             val snapshot = reliableSnapshot()
             if (snapshot != null && markState.head in 0..snapshot.text.length) {
-                setSelection(markState.head, markState.head)
+                port.setSelection(markState.head, markState.head)
             }
             disarm()
             return
@@ -209,7 +179,7 @@ class EditingController(
 
     private fun selectAll() {
         val snapshot = reliableSnapshot() ?: return
-        if (setSelection(0, snapshot.text.length)) {
+        if (port.setSelection(0, snapshot.text.length)) {
             reduceMark(EditingEvent.Activate(0, snapshot.text.length))
         }
     }
@@ -220,7 +190,7 @@ class EditingController(
         val swapped = EditingReducer.reduce(markState, EditingEvent.SwapEnds)
         val withinText = swapped.anchor in 0..snapshot.text.length && swapped.head in 0..snapshot.text.length
         if (!withinText) return
-        if (setSelection(swapped.anchor, swapped.head)) updateMark(swapped)
+        if (port.setSelection(swapped.anchor, swapped.head)) updateMark(swapped)
     }
 
     private fun move(command: EditingCommand) {
@@ -232,7 +202,8 @@ class EditingController(
 
         val backward = command.isBackward()
         if (!markState.active && snapshot.hasSelection) {
-            setSelection(if (backward) snapshot.lower else snapshot.upper, if (backward) snapshot.lower else snapshot.upper)
+            val edge = if (backward) snapshot.lower else snapshot.upper
+            port.setSelection(edge, edge)
             return
         }
         if (markState.active && (command == EditingCommand.MoveVisualUp || command == EditingCommand.MoveVisualDown)) return
@@ -248,9 +219,9 @@ class EditingController(
                 return
             }
         if (markState.active) {
-            if (setSelection(markState.anchor, target)) reduceMark(EditingEvent.MoveHead(target))
+            if (port.setSelection(markState.anchor, target)) reduceMark(EditingEvent.MoveHead(target))
         } else {
-            setSelection(target, target)
+            port.setSelection(target, target)
         }
     }
 
@@ -345,24 +316,8 @@ class EditingController(
 
     /** A successful text mutation disarms the mark and makes its callback a resync, not a move. */
     private fun finishMutation() {
-        pendingSelection = null
-        previousSelectionRequest = null
-        delayedSelectionCandidate = null
         awaitingMutationCallback = true
         disarm()
-    }
-
-    private fun setSelection(
-        anchor: Int,
-        head: Int,
-    ): Boolean {
-        val range = normalized(anchor, head)
-        if (!port.setSelection(anchor, head)) return false
-        val superseded = pendingSelection
-        delayedSelectionCandidate = superseded.takeIf { range == previousSelectionRequest }
-        previousSelectionRequest = superseded
-        pendingSelection = range
-        return true
     }
 
     private fun updateMark(newState: MarkState) {

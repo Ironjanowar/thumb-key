@@ -86,21 +86,21 @@ fun editingKeyboard(
             listOf(
                 KeyItemC(
                     center = editingCenterKey(EditingCommand.MoveLineStart, "⇤", R.string.editing_line_start),
+                ),
+                KeyItemC(
+                    center = editingCenterKey(EditingCommand.MoveVisualUp, "↑", R.string.editing_visual_up),
                     top = editingTextKey(EditingCommand.MoveTextStart, "⤒", R.string.editing_text_start),
                     swipeType = SwipeNWay.TWO_WAY_VERTICAL,
                 ),
-                editingItem(EditingCommand.MoveVisualUp, "↑", R.string.editing_visual_up),
                 KeyItemC(
                     center = editingCenterKey(EditingCommand.MoveLineEnd, "⇥", R.string.editing_line_end),
-                    bottom = editingTextKey(EditingCommand.MoveTextEnd, "⤓", R.string.editing_text_end),
-                    swipeType = SwipeNWay.TWO_WAY_VERTICAL,
                 ),
                 emptyEditingItem(),
             ),
             listOf(
                 KeyItemC(
-                    center = editingCenterKey(EditingCommand.MoveCharacterBackward, "←", R.string.editing_character_left),
-                    left = editingTextKey(EditingCommand.MoveWordBackward, "↞", R.string.editing_previous_word),
+                    center = editingCenterKey(EditingCommand.MoveWordBackward, "↞", R.string.editing_previous_word),
+                    left = editingTextKey(EditingCommand.MoveCharacterBackward, "←", R.string.editing_character_left),
                     swipeType = SwipeNWay.TWO_WAY_HORIZONTAL,
                 ),
                 KeyItemC(
@@ -118,30 +118,28 @@ fun editingKeyboard(
                     swipeType = SwipeNWay.TWO_WAY_VERTICAL,
                 ),
                 KeyItemC(
-                    center = editingCenterKey(EditingCommand.MoveCharacterForward, "→", R.string.editing_character_right),
-                    right = editingTextKey(EditingCommand.MoveWordForward, "↠", R.string.editing_next_word),
+                    center = editingCenterKey(EditingCommand.MoveWordForward, "↠", R.string.editing_next_word),
+                    right = editingTextKey(EditingCommand.MoveCharacterForward, "→", R.string.editing_character_right),
                     swipeType = SwipeNWay.TWO_WAY_HORIZONTAL,
                 ),
                 EDITING_EXIT_KEY,
             ),
             listOf(
                 emptyEditingItem(),
-                editingItem(EditingCommand.MoveVisualDown, "↓", R.string.editing_visual_down),
+                KeyItemC(
+                    center = editingCenterKey(EditingCommand.MoveVisualDown, "↓", R.string.editing_visual_down),
+                    bottom = editingTextKey(EditingCommand.MoveTextEnd, "⤓", R.string.editing_text_end),
+                    swipeType = SwipeNWay.TWO_WAY_VERTICAL,
+                ),
                 EDITING_FORWARD_DELETE_KEY,
                 EDITING_BACKSPACE_KEY,
             ),
             listOf(
                 emptyEditingItem(widthMultiplier = 3),
-                emptyEditingItem(),
+                RETURN_KEY_ITEM,
             ),
         ),
     )
-
-private fun editingItem(
-    command: EditingCommand,
-    symbol: String,
-    @StringRes description: Int,
-): KeyItemC = KeyItemC(center = editingCenterKey(command, symbol, description))
 
 private fun editingCenterKey(
     command: EditingCommand,

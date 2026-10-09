@@ -16,17 +16,16 @@ class EditingKeyboardTest {
         assertEquals(4, keyboard.arr.size)
         assertTrue(keyboard.arr.all { row -> row.sumOf { it.widthMultiplier } == 4 })
         assertCommand(EditingCommand.MoveLineStart, keyboard.arr[0][0].center.action)
-        assertCommand(EditingCommand.MoveTextStart, keyboard.arr[0][0].top?.action)
         assertCommand(EditingCommand.MoveVisualUp, keyboard.arr[0][1].center.action)
+        assertCommand(EditingCommand.MoveTextStart, keyboard.arr[0][1].top?.action)
         assertCommand(EditingCommand.MoveLineEnd, keyboard.arr[0][2].center.action)
-        assertCommand(EditingCommand.MoveTextEnd, keyboard.arr[0][2].bottom?.action)
-        assertCommand(EditingCommand.MoveCharacterBackward, keyboard.arr[1][0].center.action)
-        assertCommand(EditingCommand.MoveWordBackward, keyboard.arr[1][0].left?.action)
+        assertCommand(EditingCommand.MoveWordBackward, keyboard.arr[1][0].center.action)
+        assertCommand(EditingCommand.MoveCharacterBackward, keyboard.arr[1][0].left?.action)
         assertCommand(EditingCommand.ToggleMark, keyboard.arr[1][1].center.action)
         assertCommand(EditingCommand.SelectAll, keyboard.arr[1][1].top?.action)
         assertCommand(EditingCommand.SwapEnds, keyboard.arr[1][1].bottom?.action)
-        assertCommand(EditingCommand.MoveCharacterForward, keyboard.arr[1][2].center.action)
-        assertCommand(EditingCommand.MoveWordForward, keyboard.arr[1][2].right?.action)
+        assertCommand(EditingCommand.MoveWordForward, keyboard.arr[1][2].center.action)
+        assertCommand(EditingCommand.MoveCharacterForward, keyboard.arr[1][2].right?.action)
         // The exit key sits on the numeric key's cell and carries the clipboard cluster in that
         // key's directions, so copy, cut, paste, undo and redo stay where the hand expects them.
         assertEquals(false, (keyboard.arr[1][3].center.action as KeyAction.ToggleEditingMode).enable)
@@ -38,11 +37,13 @@ class EditingKeyboardTest {
         assertCommand(EditingCommand.Paste, keyboard.arr[1][3].bottom?.action)
         assertTrue(keyboard.arr[2][0].center.action is KeyAction.Noop)
         assertCommand(EditingCommand.MoveVisualDown, keyboard.arr[2][1].center.action)
+        assertCommand(EditingCommand.MoveTextEnd, keyboard.arr[2][1].bottom?.action)
         assertCommand(EditingCommand.DeleteNextGrapheme, keyboard.arr[2][2].center.action)
         assertCommand(EditingCommand.DeletePreviousWord, keyboard.arr[2][2].left?.action)
         assertCommand(EditingCommand.DeleteNextWord, keyboard.arr[2][2].right?.action)
         // Backwards deletion, on the letter keyboards' backspace cell
         assertCommand(EditingCommand.DeletePreviousGrapheme, keyboard.arr[2][3].center.action)
+        assertEquals(RETURN_KEY_ITEM, keyboard.arr[3][1])
     }
 
     @Test
@@ -64,7 +65,7 @@ class EditingKeyboardTest {
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[0][0].center.size)
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[2][3].center.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][2].center.size)
-        assertEquals(FontSizeVariant.SMALL, keyboard.arr[0][0].top?.size)
+        assertEquals(FontSizeVariant.SMALL, keyboard.arr[0][1].top?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][0].left?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][3].topRight?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][2].left?.size)

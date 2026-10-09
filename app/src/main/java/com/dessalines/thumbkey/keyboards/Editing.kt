@@ -18,8 +18,6 @@ val TOGGLE_EDITING_TRUE_KEYC =
         contentDescriptionRes = R.string.editing_enter,
     )
 
-val NUMERIC_EDITING_KEY_ITEM = NUMERIC_KEY_ITEM.copy(left = TOGGLE_EDITING_TRUE_KEYC)
-
 /**
  * Leaving the panel, on the cell the letter keyboards keep their numeric key on: the clipboard
  * cluster keeps the exact directions it has there, so the hand does not have to relearn them.

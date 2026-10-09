@@ -47,6 +47,7 @@ import com.dessalines.thumbkey.keyboards.TOGGLE_SHIFT_FALSE_KEYC
 import com.dessalines.thumbkey.keyboards.TOGGLE_SHIFT_TRUE_KEYC
 import com.dessalines.thumbkey.keyboards.TOGGLE_SKETCH_MODE_TRUE_KEYC
 import com.dessalines.thumbkey.keyboards.UNDO_KEYC
+import com.dessalines.thumbkey.keyboards.installEditingModeEntry
 import com.dessalines.thumbkey.textprocessors.ComposeComboProcessor
 import com.dessalines.thumbkey.utils.KeyAction.CommitText
 import com.dessalines.thumbkey.utils.KeyAction.Noop
@@ -65,16 +66,21 @@ private val modificationsComposeComboProcessor = ComposeComboProcessor()
 
 /**
  * The definition the keyboard should use for [keyboardLayout]: the modified one if
- * [keyModifications] has entries for it and they apply cleanly, else the built-in one.
+ * [keyModifications] has entries for it and they apply cleanly, else the built-in one. Editing-mode
+ * entry is applied last so a user-provided gesture always wins.
  */
 fun resolveKeyboardDefinition(
     keyboardLayout: KeyboardLayout,
     keyModifications: String?,
-): KeyboardDefinition =
-    keyModifications
-        ?.takeIf { it.isNotEmpty() }
-        ?.let { getModifiedKeyboardDefinition(keyboardLayout, it) }
-        ?: keyboardLayout.keyboardDefinition
+    editingModeEnabled: Boolean = false,
+): KeyboardDefinition {
+    val resolved =
+        keyModifications
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { getModifiedKeyboardDefinition(keyboardLayout, it) }
+            ?: keyboardLayout.keyboardDefinition
+    return installEditingModeEntry(resolved, editingModeEnabled)
+}
 
 /**
  * @param keyboardLayout The layout of the keyboard to be modified.

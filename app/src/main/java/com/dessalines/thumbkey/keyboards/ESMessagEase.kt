@@ -76,7 +76,7 @@ val KB_ES_MESSAGEASE_MAIN =
                         ),
                     bottomLeft = KeyC("@", color = MUTED),
                 ),
-                NUMERIC_EDITING_KEY_ITEM,
+                NUMERIC_KEY_ITEM,
             ),
             listOf(
                 KeyItemC(
@@ -177,7 +177,7 @@ val KB_ES_MESSAGEASE_SHIFTED =
                     right = KeyC(")", color = MUTED),
                     bottomLeft = KeyC("@", color = MUTED),
                 ),
-                NUMERIC_EDITING_KEY_ITEM,
+                NUMERIC_KEY_ITEM,
             ),
             listOf(
                 KeyItemC(

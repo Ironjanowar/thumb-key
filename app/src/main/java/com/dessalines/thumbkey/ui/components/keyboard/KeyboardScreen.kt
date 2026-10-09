@@ -48,6 +48,7 @@ import com.dessalines.thumbkey.db.DEFAULT_CLIPBOARD_HISTORY_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_CLOCKWISE_DRAG_ACTION
 import com.dessalines.thumbkey.db.DEFAULT_COUNTERCLOCKWISE_DRAG_ACTION
 import com.dessalines.thumbkey.db.DEFAULT_DRAG_RETURN_ENABLED
+import com.dessalines.thumbkey.db.DEFAULT_EDITING_MODE_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_GHOST_KEYS_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_HIDE_LETTERS
 import com.dessalines.thumbkey.db.DEFAULT_HIDE_SYMBOLS
@@ -119,7 +120,9 @@ fun KeyboardScreen(
         ]
 
     val keyMods = settings?.keyModifications
-    val keyboardDefinition = resolveKeyboardDefinition(layout, keyMods)
+    val editingModeEnabled =
+        (settings?.editingModeEnabled ?: DEFAULT_EDITING_MODE_ENABLED).toBool()
+    val keyboardDefinition = resolveKeyboardDefinition(layout, keyMods, editingModeEnabled)
 
     var mode by remember {
         val startMode =

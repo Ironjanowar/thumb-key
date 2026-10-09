@@ -7,7 +7,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class EditingKeyboardTest {
     @Test
     fun panelKeepsFourByFourGeometryAndPlacesEveryCommand() {
@@ -72,18 +75,16 @@ class EditingKeyboardTest {
     }
 
     @Test
-    fun entryLegendIsNoLargerThanTheOtherLegendsOfItsKey() {
-        val entry = NUMERIC_EDITING_KEY_ITEM.left
-
-        assertEquals(NUMERIC_EDITING_KEY_ITEM.top?.size, entry?.size)
-        assertEquals(FontSizeVariant.SMALL, entry?.size)
-    }
-
-    @Test
-    fun spanishEntryUsesASpecializedNumericKeyWithoutChangingTheSharedKey() {
-        assertTrue(NUMERIC_EDITING_KEY_ITEM.center.action is KeyAction.ToggleNumericMode)
-        assertEquals(true, (NUMERIC_EDITING_KEY_ITEM.left?.action as KeyAction.ToggleEditingMode).enable)
-        assertTrue(NUMERIC_KEY_ITEM.left == null)
+    fun spanishLayoutsDoNotHardcodeEditingEntry() {
+        listOf(
+            KB_ES_THUMBKEY_MAIN,
+            KB_ES_THUMBKEY_SHIFTED,
+            KB_ES_MESSAGEASE_MAIN,
+            KB_ES_MESSAGEASE_SHIFTED,
+        ).forEach { keyboard ->
+            val anchor = keyboard.arr.flatten().single { it.center.action is KeyAction.ToggleNumericMode }
+            assertTrue(anchor.left == null)
+        }
     }
 
     private fun assertCommand(

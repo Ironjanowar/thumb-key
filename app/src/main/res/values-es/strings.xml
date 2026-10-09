@@ -160,7 +160,6 @@
     <string name="editing_next_word">Palabra siguiente</string>
     <string name="editing_select_all">Seleccionar todo</string>
     <string name="editing_swap_ends">Intercambiar extremos de selección</string>
-    <string name="editing_clipboard">Comandos del portapapeles</string>
     <string name="editing_copy">Copiar selección</string>
     <string name="editing_cut">Cortar selección</string>
     <string name="editing_paste">Pegar</string>

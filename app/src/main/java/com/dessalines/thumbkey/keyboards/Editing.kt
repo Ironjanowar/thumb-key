@@ -6,7 +6,6 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.KeyboardBackspace
 import androidx.compose.material.icons.outlined.Abc
-import androidx.compose.material.icons.outlined.Inventory
 import com.dessalines.thumbkey.R
 import com.dessalines.thumbkey.editing.EditingCommand
 import com.dessalines.thumbkey.utils.*
@@ -21,6 +20,10 @@ val TOGGLE_EDITING_TRUE_KEYC =
 
 val NUMERIC_EDITING_KEY_ITEM = NUMERIC_KEY_ITEM.copy(left = TOGGLE_EDITING_TRUE_KEYC)
 
+/**
+ * Leaving the panel, on the cell the letter keyboards keep their numeric key on: the clipboard
+ * cluster keeps the exact directions it has there, so the hand does not have to relearn them.
+ */
 private val EDITING_EXIT_KEY =
     KeyItemC(
         center =
@@ -30,6 +33,40 @@ private val EDITING_EXIT_KEY =
                 size = FontSizeVariant.LARGE,
                 contentDescriptionRes = R.string.editing_exit,
             ),
+        top = editingTextKey(EditingCommand.Copy, "⧉", R.string.editing_copy),
+        topLeft = editingTextKey(EditingCommand.SelectAll, "▣", R.string.editing_select_all),
+        topRight = editingTextKey(EditingCommand.Cut, "✂", R.string.editing_cut),
+        bottomLeft = editingTextKey(EditingCommand.Undo, "↶", R.string.editing_undo),
+        bottomRight = editingTextKey(EditingCommand.Redo, "↷", R.string.editing_redo),
+        bottom = editingTextKey(EditingCommand.Paste, "▤", R.string.editing_paste),
+        swipeType = SwipeNWay.EIGHT_WAY,
+        backgroundColor = ColorVariant.SURFACE_VARIANT,
+    )
+
+/**
+ * Backwards deletion, on the cell the letter keyboards keep their backspace on, so it is where it
+ * always was. Deleting whole words lives on the key to its left.
+ */
+private val EDITING_BACKSPACE_KEY =
+    KeyItemC(
+        center =
+            KeyC(
+                action = KeyAction.Editing(EditingCommand.DeletePreviousGrapheme),
+                display = KeyDisplay.IconDisplay(Icons.AutoMirrored.Outlined.KeyboardBackspace),
+                size = FontSizeVariant.LARGE,
+                color = ColorVariant.SECONDARY,
+                contentDescriptionRes = R.string.editing_delete_previous_character,
+            ),
+        backgroundColor = ColorVariant.SURFACE_VARIANT,
+    )
+
+/** Word deletion either side of the cursor, with the tap deleting the character to its right. */
+private val EDITING_FORWARD_DELETE_KEY =
+    KeyItemC(
+        center = editingCenterKey(EditingCommand.DeleteNextGrapheme, "⌦", R.string.editing_delete_next_character),
+        left = editingTextKey(EditingCommand.DeletePreviousWord, "⌫w", R.string.editing_delete_previous_word),
+        right = editingTextKey(EditingCommand.DeleteNextWord, "w⌦", R.string.editing_delete_next_word),
+        swipeType = SwipeNWay.TWO_WAY_HORIZONTAL,
         backgroundColor = ColorVariant.SURFACE_VARIANT,
     )
 
@@ -82,39 +119,10 @@ fun editingKeyboard(
                 EDITING_EXIT_KEY,
             ),
             listOf(
-                KeyItemC(
-                    center =
-                        KeyC(
-                            action = KeyAction.Noop,
-                            display = KeyDisplay.IconDisplay(Icons.Outlined.Inventory),
-                            color = ColorVariant.MUTED,
-                            contentDescriptionRes = R.string.editing_clipboard,
-                        ),
-                    top = editingTextKey(EditingCommand.Copy, "⧉", R.string.editing_copy),
-                    topRight = editingTextKey(EditingCommand.Cut, "✂", R.string.editing_cut),
-                    bottom = editingTextKey(EditingCommand.Paste, "▤", R.string.editing_paste),
-                    left = editingTextKey(EditingCommand.Undo, "↶", R.string.editing_undo),
-                    right = editingTextKey(EditingCommand.Redo, "↷", R.string.editing_redo),
-                    swipeType = SwipeNWay.EIGHT_WAY,
-                ),
-                editingItem(EditingCommand.MoveVisualDown, "↓", R.string.editing_visual_down),
-                KeyItemC(
-                    center =
-                        KeyC(
-                            action = KeyAction.Editing(EditingCommand.DeletePreviousGrapheme),
-                            display = KeyDisplay.IconDisplay(Icons.AutoMirrored.Outlined.KeyboardBackspace),
-                            // MEDIUM, not LARGE: at LARGE the icon left only a few pixels of room for the
-                            // word-delete legends either side of it.
-                            size = FontSizeVariant.MEDIUM,
-                            contentDescriptionRes = R.string.editing_delete_previous_character,
-                        ),
-                    left = editingTextKey(EditingCommand.DeletePreviousWord, "⌫w", R.string.editing_delete_previous_word),
-                    right = editingTextKey(EditingCommand.DeleteNextWord, "w⌦", R.string.editing_delete_next_word),
-                    top = editingTextKey(EditingCommand.DeleteNextGrapheme, "⌦", R.string.editing_delete_next_character),
-                    swipeType = SwipeNWay.EIGHT_WAY,
-                    backgroundColor = ColorVariant.SURFACE_VARIANT,
-                ),
                 emptyEditingItem(),
+                editingItem(EditingCommand.MoveVisualDown, "↓", R.string.editing_visual_down),
+                EDITING_FORWARD_DELETE_KEY,
+                EDITING_BACKSPACE_KEY,
             ),
             listOf(
                 emptyEditingItem(widthMultiplier = 3),

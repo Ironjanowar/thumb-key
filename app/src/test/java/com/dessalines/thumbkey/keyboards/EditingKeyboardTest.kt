@@ -27,17 +27,22 @@ class EditingKeyboardTest {
         assertCommand(EditingCommand.SwapEnds, keyboard.arr[1][1].bottom?.action)
         assertCommand(EditingCommand.MoveCharacterForward, keyboard.arr[1][2].center.action)
         assertCommand(EditingCommand.MoveWordForward, keyboard.arr[1][2].right?.action)
+        // The exit key sits on the numeric key's cell and carries the clipboard cluster in that
+        // key's directions, so copy, cut, paste, undo and redo stay where the hand expects them.
         assertEquals(false, (keyboard.arr[1][3].center.action as KeyAction.ToggleEditingMode).enable)
-        assertCommand(EditingCommand.Copy, keyboard.arr[2][0].top?.action)
-        assertCommand(EditingCommand.Cut, keyboard.arr[2][0].topRight?.action)
-        assertCommand(EditingCommand.Paste, keyboard.arr[2][0].bottom?.action)
-        assertCommand(EditingCommand.Undo, keyboard.arr[2][0].left?.action)
-        assertCommand(EditingCommand.Redo, keyboard.arr[2][0].right?.action)
+        assertCommand(EditingCommand.Copy, keyboard.arr[1][3].top?.action)
+        assertCommand(EditingCommand.SelectAll, keyboard.arr[1][3].topLeft?.action)
+        assertCommand(EditingCommand.Cut, keyboard.arr[1][3].topRight?.action)
+        assertCommand(EditingCommand.Undo, keyboard.arr[1][3].bottomLeft?.action)
+        assertCommand(EditingCommand.Redo, keyboard.arr[1][3].bottomRight?.action)
+        assertCommand(EditingCommand.Paste, keyboard.arr[1][3].bottom?.action)
+        assertTrue(keyboard.arr[2][0].center.action is KeyAction.Noop)
         assertCommand(EditingCommand.MoveVisualDown, keyboard.arr[2][1].center.action)
-        assertCommand(EditingCommand.DeletePreviousGrapheme, keyboard.arr[2][2].center.action)
+        assertCommand(EditingCommand.DeleteNextGrapheme, keyboard.arr[2][2].center.action)
         assertCommand(EditingCommand.DeletePreviousWord, keyboard.arr[2][2].left?.action)
         assertCommand(EditingCommand.DeleteNextWord, keyboard.arr[2][2].right?.action)
-        assertCommand(EditingCommand.DeleteNextGrapheme, keyboard.arr[2][2].top?.action)
+        // Backwards deletion, on the letter keyboards' backspace cell
+        assertCommand(EditingCommand.DeletePreviousGrapheme, keyboard.arr[2][3].center.action)
     }
 
     @Test
@@ -57,11 +62,10 @@ class EditingKeyboardTest {
         val keyboard = editingKeyboard(false, "Mark", "Selecting")
 
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[0][0].center.size)
-        // The delete key's icon is MEDIUM so its word-delete legends have room either side
-        assertEquals(FontSizeVariant.MEDIUM, keyboard.arr[2][2].center.size)
+        assertEquals(FontSizeVariant.LARGE, keyboard.arr[2][3].center.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[0][0].top?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][0].left?.size)
-        assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][0].topRight?.size)
+        assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][3].topRight?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][2].left?.size)
     }
 

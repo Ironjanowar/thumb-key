@@ -178,7 +178,6 @@
     <string name="editing_next_word">Next word</string>
     <string name="editing_select_all">Select all</string>
     <string name="editing_swap_ends">Swap selection ends</string>
-    <string name="editing_clipboard">Clipboard commands</string>
     <string name="editing_copy">Copy selection</string>
     <string name="editing_cut">Cut selection</string>
     <string name="editing_paste">Paste</string>

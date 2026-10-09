@@ -50,6 +50,15 @@ class EditingKeyboardTest {
     }
 
     @Test
+    fun bottomRowUsesStandardSpacebarAndKeepsReturn() {
+        val bottomRow = editingKeyboard(false, "Mark", "Selecting").arr[3]
+
+        assertEquals(SPACEBAR_KEY_ITEM, bottomRow[0])
+        assertEquals(3, bottomRow[0].widthMultiplier)
+        assertEquals(RETURN_KEY_ITEM, bottomRow[1])
+    }
+
+    @Test
     fun activeMarkChangesLabelColorAndShapeEmphasis() {
         val inactive = editingKeyboard(false, "Mark", "Selecting").arr[1][1].center
         val active = editingKeyboard(true, "Mark", "Selecting").arr[1][1].center

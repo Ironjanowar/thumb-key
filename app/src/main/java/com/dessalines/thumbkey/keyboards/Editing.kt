@@ -133,7 +133,7 @@ fun editingKeyboard(
                 EDITING_BACKSPACE_KEY,
             ),
             listOf(
-                emptyEditingItem(widthMultiplier = 3),
+                SPACEBAR_KEY_ITEM,
                 RETURN_KEY_ITEM,
             ),
         ),

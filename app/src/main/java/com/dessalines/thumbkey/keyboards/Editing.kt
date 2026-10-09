@@ -63,7 +63,13 @@ private val EDITING_BACKSPACE_KEY =
 /** Word deletion either side of the cursor, with the tap deleting the character to its right. */
 private val EDITING_FORWARD_DELETE_KEY =
     KeyItemC(
-        center = editingCenterKey(EditingCommand.DeleteNextGrapheme, "⌦", R.string.editing_delete_next_character),
+        center =
+            editingTextKey(
+                EditingCommand.DeleteNextGrapheme,
+                "⌦",
+                R.string.editing_delete_next_character,
+                FontSizeVariant.SMALL,
+            ),
         left = editingTextKey(EditingCommand.DeletePreviousWord, "⌫w", R.string.editing_delete_previous_word),
         right = editingTextKey(EditingCommand.DeleteNextWord, "w⌦", R.string.editing_delete_next_word),
         swipeType = SwipeNWay.TWO_WAY_HORIZONTAL,

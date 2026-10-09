@@ -63,6 +63,7 @@ class EditingKeyboardTest {
 
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[0][0].center.size)
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[2][3].center.size)
+        assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][2].center.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[0][0].top?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][0].left?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][3].topRight?.size)

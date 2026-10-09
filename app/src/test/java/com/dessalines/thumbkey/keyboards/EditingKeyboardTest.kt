@@ -57,10 +57,20 @@ class EditingKeyboardTest {
         val keyboard = editingKeyboard(false, "Mark", "Selecting")
 
         assertEquals(FontSizeVariant.LARGE, keyboard.arr[0][0].center.size)
+        // The delete key's icon is MEDIUM so its word-delete legends have room either side
+        assertEquals(FontSizeVariant.MEDIUM, keyboard.arr[2][2].center.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[0][0].top?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[1][0].left?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][0].topRight?.size)
         assertEquals(FontSizeVariant.SMALL, keyboard.arr[2][2].left?.size)
+    }
+
+    @Test
+    fun entryLegendIsNoLargerThanTheOtherLegendsOfItsKey() {
+        val entry = NUMERIC_EDITING_KEY_ITEM.left
+
+        assertEquals(NUMERIC_EDITING_KEY_ITEM.top?.size, entry?.size)
+        assertEquals(FontSizeVariant.SMALL, entry?.size)
     }
 
     @Test

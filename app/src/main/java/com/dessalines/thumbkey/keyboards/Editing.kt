@@ -15,7 +15,6 @@ val TOGGLE_EDITING_TRUE_KEYC =
     KeyC(
         action = KeyAction.ToggleEditingMode(true),
         display = KeyDisplay.TextDisplay("✎"),
-        size = FontSizeVariant.LARGE,
         color = ColorVariant.MUTED,
         contentDescriptionRes = R.string.editing_enter,
     )
@@ -104,7 +103,9 @@ fun editingKeyboard(
                         KeyC(
                             action = KeyAction.Editing(EditingCommand.DeletePreviousGrapheme),
                             display = KeyDisplay.IconDisplay(Icons.AutoMirrored.Outlined.KeyboardBackspace),
-                            size = FontSizeVariant.LARGE,
+                            // MEDIUM, not LARGE: at LARGE the icon left only a few pixels of room for the
+                            // word-delete legends either side of it.
+                            size = FontSizeVariant.MEDIUM,
                             contentDescriptionRes = R.string.editing_delete_previous_character,
                         ),
                     left = editingTextKey(EditingCommand.DeletePreviousWord, "⌫w", R.string.editing_delete_previous_word),

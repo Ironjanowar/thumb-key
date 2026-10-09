@@ -5,6 +5,13 @@ import org.junit.Test
 
 class TextBoundariesTest {
     @Test
+    fun graphemeMovementHandlesAnIsolatedTerminalPrependCharacter() {
+        val text = "\u0600"
+
+        assertEquals(text.length, TextBoundaries.nextGrapheme(text, 0))
+    }
+
+    @Test
     fun graphemeMovementKeepsUnicodeClustersAtomic() {
         val clusters = listOf("e\u0301", "👍🏽", "🇪🇸", "👩‍👩‍👧‍👦")
         val text = clusters.joinToString("")

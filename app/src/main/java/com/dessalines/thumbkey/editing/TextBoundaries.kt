@@ -105,7 +105,7 @@ object TextBoundaries {
         offset += Character.charCount(first)
 
         // A leading prepend character belongs to the cluster that follows it
-        if (isPrepend(first)) return nextClusterEnd(text, offset)
+        if (isPrepend(first)) return if (offset < text.length) nextClusterEnd(text, offset) else offset
         if (first == '\r'.code && offset < text.length && text.codePointAt(offset) == '\n'.code) return offset + 1
         if (isRegionalIndicator(first) && offset < text.length && isRegionalIndicator(text.codePointAt(offset))) {
             return offset + Character.charCount(text.codePointAt(offset))

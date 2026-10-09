@@ -102,20 +102,20 @@ class EditingController(
     var markState: MarkState = MarkState.Inactive
         private set
 
-    // Ranges this controller asked the editor to apply, in request order, plus whether the
-    // next selection change comes from a successful text mutation. A new user command expires
-    // the mutation expectation because some editors omit that callback.
-    private val pendingSelections = mutableListOf<Pair<Int, Int>>()
+    // The current range this controller asked the editor to apply, plus whether the next
+    // selection change comes from a successful text mutation. A new user command expires the
+    // mutation expectation because some editors omit that callback.
+    private var pendingSelection: Pair<Int, Int>? = null
     private var awaitingMutationCallback = false
 
     fun startSession() {
-        pendingSelections.clear()
+        pendingSelection = null
         awaitingMutationCallback = false
         updateMark(MarkState.Inactive)
     }
 
     fun finishSession() {
-        pendingSelections.clear()
+        pendingSelection = null
         awaitingMutationCallback = false
         updateMark(MarkState.Inactive)
     }
@@ -127,12 +127,18 @@ class EditingController(
         selectionEnd: Int,
     ) {
         val range = normalized(selectionStart, selectionEnd)
-        val pendingIndex = pendingSelections.indexOf(range)
-        if (pendingIndex >= 0) {
-            // The editor may coalesce or drop callbacks, so every request up to the
-            // acknowledged one is superseded and must not match a later external move.
-            pendingSelections.subList(0, pendingIndex + 1).clear()
+        val expected = pendingSelection
+        if (range == expected) {
+            pendingSelection = null
             return
+        }
+        if (expected != null) {
+            // A delayed callback for an older request is harmless while a fresh snapshot still
+            // confirms the current request. Do not retain historical ranges: if the editor has
+            // actually moved to an older range, that is an external selection update.
+            val currentRange = reliableSnapshot()?.let { normalized(it.selectionStart, it.selectionEnd) }
+            if (currentRange == expected) return
+            pendingSelection = null
         }
         if (awaitingMutationCallback) {
             awaitingMutationCallback = false
@@ -324,7 +330,7 @@ class EditingController(
 
     /** A successful text mutation disarms the mark and makes its callback a resync, not a move. */
     private fun finishMutation() {
-        pendingSelections.clear()
+        pendingSelection = null
         awaitingMutationCallback = true
         disarm()
     }
@@ -335,7 +341,7 @@ class EditingController(
     ): Boolean {
         val range = normalized(anchor, head)
         if (!port.setSelection(anchor, head)) return false
-        pendingSelections += range
+        pendingSelection = range
         return true
     }
 

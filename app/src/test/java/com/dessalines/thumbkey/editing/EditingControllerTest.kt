@@ -160,6 +160,36 @@ class EditingControllerTest {
     }
 
     @Test
+    fun latestSelectionAcknowledgementAfterReversalKeepsMarkActive() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+
+        controller.onSelectionUpdate(2, 3)
+
+        assertEquals(MarkState(anchor = 2, head = 3), controller.markState)
+    }
+
+    @Test
+    fun externalSelectionMatchingHistoricalPendingRangeDisarmsMark() {
+        val port = FakePort("abcdef", 2, 2)
+        val controller = EditingController(port)
+        controller.perform(EditingCommand.ToggleMark)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterForward)
+        controller.perform(EditingCommand.MoveCharacterBackward)
+        assertEquals(MarkState(anchor = 2, head = 3), controller.markState)
+
+        port.updateSelection(2, 4)
+        controller.onSelectionUpdate(2, 4)
+
+        assertFalse(controller.markState.active)
+    }
+
+    @Test
     fun sessionEndDisarmsWithoutChangingEditorSelection() {
         val port = FakePort("abc", 0, 2)
         val controller = EditingController(port)
@@ -279,6 +309,13 @@ class EditingControllerTest {
 
         fun shrink(text: String) {
             current = EditorSnapshot(text, current.selectionStart, current.selectionEnd)
+        }
+
+        fun updateSelection(
+            start: Int,
+            end: Int,
+        ) {
+            current = current.copy(selectionStart = start, selectionEnd = end)
         }
 
         override fun setSelection(

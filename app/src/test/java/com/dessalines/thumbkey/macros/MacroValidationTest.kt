@@ -43,5 +43,8 @@ class MacroValidationTest {
         val result = MacroValidation.validate(long, listOf(short))
         assertTrue(result.errors.isEmpty())
         assertTrue(result.warnings.contains(MacroValidationWarning.IMMEDIATE_PREFIX))
+
+        val configuringShort = MacroValidation.validate(short, listOf(long))
+        assertTrue(configuringShort.warnings.contains(MacroValidationWarning.IMMEDIATE_PREFIX))
     }
 }

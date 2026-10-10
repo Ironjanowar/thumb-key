@@ -30,7 +30,10 @@ object MacroValidation {
         }
         existing.filter { it.id != macro.id }.forEach { other ->
             if (domainsOverlap(macro, other)) errors += MacroValidationError.KEY_CONFLICT
-            if (other.mode == MacroMode.IMMEDIATE && startsWith(macro.key, other.key, other.caseSensitive)) {
+            if (
+                (other.mode == MacroMode.IMMEDIATE && startsWith(macro.key, other.key, other.caseSensitive)) ||
+                (macro.mode == MacroMode.IMMEDIATE && startsWith(other.key, macro.key, macro.caseSensitive))
+            ) {
                 warnings += MacroValidationWarning.IMMEDIATE_PREFIX
             }
         }

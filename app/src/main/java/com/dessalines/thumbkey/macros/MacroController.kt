@@ -76,7 +76,19 @@ class MacroController(
 
     fun beforeExplicitEdit() = clear()
 
-    fun onSelectionChanged() {
+    /** A selection callback arrived; keep only what the confirmed snapshot still backs. */
+    fun onSelectionChanged() = revalidate()
+
+    /** The app's field content changed without a typing commit; drop anything stale. */
+    fun onContentChanged() = revalidate()
+
+    /**
+     * Revalidates the pending manual candidate and the undo record against the confirmed snapshot,
+     * hiding a candidate as soon as it no longer matches. The fail-closed check in
+     * [MacroEditorPort.replace] still guards the actual mutation.
+     */
+    private fun revalidate() {
+        if (manual == null && undo == null) return
         val current = port.snapshot()
         if (undo != null && current == undo?.expected) return
         if (manual != null && current == manual?.snapshot) return

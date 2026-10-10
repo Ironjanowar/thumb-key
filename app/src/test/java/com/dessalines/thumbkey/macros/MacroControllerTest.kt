@@ -121,6 +121,45 @@ class MacroControllerTest {
         assertEquals(listOf("Hola", "Buenas"), controller.state.value.candidates)
     }
 
+    @Test fun `a content change by another path hides a stale manual candidate`() {
+        val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
+        val port = FakePort("saludo", 6)
+        val controller = MacroController(port)
+        controller.updateDefinitions(listOf(manual))
+        controller.onDirectTextCommitted("o")
+        assertEquals(listOf("Hola", "Buenas"), controller.state.value.candidates)
+
+        // The app rewrote the field without a typing commit or a selection callback.
+        port.text = "saludo!"
+        port.cursor = 7
+        port.selectionEnd = 7
+        controller.onContentChanged()
+
+        assertTrue(
+            controller.state.value.candidates
+                .isEmpty(),
+        )
+    }
+
+    @Test fun `an unrelated content callback keeps a candidate that is still valid`() {
+        val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
+        val port = FakePort("saludo", 6)
+        val controller = MacroController(port)
+        controller.updateDefinitions(listOf(manual))
+        controller.onDirectTextCommitted("o")
+
+        controller.onContentChanged()
+        assertEquals(listOf("Hola", "Buenas"), controller.state.value.candidates)
+
+        port.cursor = 5
+        port.selectionEnd = 5
+        controller.onContentChanged()
+        assertTrue(
+            controller.state.value.candidates
+                .isEmpty(),
+        )
+    }
+
     @Test fun `failed or unconfirmed replacement never publishes undo`() {
         val port = FakePort("JJ", 2).apply { failReplacement = true }
         val controller = MacroController(port)

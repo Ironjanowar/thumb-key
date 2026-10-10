@@ -188,6 +188,10 @@ class IMEService :
 
         selectionStart = cursorAnchorInfo.selectionStart
         selectionEnd = cursorAnchorInfo.selectionEnd
+
+        // Cursor anchors also move when the field's content changes without a typing commit or a
+        // selection callback; hide a candidate the confirmed snapshot no longer backs.
+        macroController.onContentChanged()
     }
 
     override fun onEvaluateInputViewShown(): Boolean {

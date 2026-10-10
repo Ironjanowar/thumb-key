@@ -32,6 +32,28 @@ class MacroControllerTest {
         assertEquals("Jj", port.text)
     }
 
+    @Test fun `direct typing that replaces a selection cannot expand or offer candidates`() {
+        val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
+        listOf(macro, manual).forEach { definition ->
+            val port = FakePort("selected", 0).apply { selectionEnd = text.length }
+            val controller = MacroController(port)
+            controller.updateDefinitions(listOf(definition))
+
+            val mayProcessMacros = controller.beforeDirectTextCommit()
+            port.text = definition.key
+            port.cursor = definition.key.length
+            port.selectionEnd = port.cursor
+            controller.onDirectTextCommitted(definition.key.takeLast(1), mayProcessMacros)
+
+            assertEquals(definition.key, port.text)
+            assertTrue(
+                controller.state.value.candidates
+                    .isEmpty(),
+            )
+            assertFalse(controller.state.value.canUndo)
+        }
+    }
+
     @Test fun `manual candidate revalidates fresh snapshot before replacing`() {
         val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
         val port = FakePort("saludo", 6)
@@ -111,9 +133,10 @@ class MacroControllerTest {
         var text: String,
         var cursor: Int,
     ) : MacroEditorPort {
+        var selectionEnd: Int = cursor
         var failReplacement = false
 
-        override fun snapshot(): MacroSnapshot = MacroSnapshot(text, cursor, cursor)
+        override fun snapshot(): MacroSnapshot = MacroSnapshot(text, cursor, selectionEnd)
 
         override fun replace(
             expected: MacroSnapshot,
@@ -127,6 +150,7 @@ class MacroControllerTest {
             }
             text = text.replaceRange(range.first, range.last + 1, replacement)
             cursor = range.first + replacement.length
+            selectionEnd = cursor
             return MacroEditResult.Success(snapshot())
         }
     }

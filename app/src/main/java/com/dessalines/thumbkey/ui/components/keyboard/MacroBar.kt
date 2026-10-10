@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +41,7 @@ fun MacroBar(
                 Button(onClick = onUndo) { Text(stringResource(R.string.macro_undo)) }
             } else {
                 state.candidates.forEachIndexed { index, text ->
-                    Button(onClick = { onCandidate(index) }) {
+                    Button(onClick = { onCandidate(index) }, modifier = Modifier.widthIn(max = 240.dp)) {
                         Text(text.replace('\n', ' '), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }

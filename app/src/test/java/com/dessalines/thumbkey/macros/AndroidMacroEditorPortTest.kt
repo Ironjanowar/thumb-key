@@ -4,6 +4,7 @@ import android.text.InputType
 import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.InputConnection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -13,6 +14,19 @@ import java.lang.reflect.Proxy
 
 @RunWith(RobolectricTestRunner::class)
 class AndroidMacroEditorPortTest {
+    @Test fun `controller snapshot before InputConnection commit blocks replacement of selection`() {
+        val fake = FakeConnection("selected", 0).apply { selectionEnd = text.length }
+        val controller = MacroController(AndroidMacroEditorPort({ fake.proxy }, { InputType.TYPE_CLASS_TEXT }, { false }))
+        controller.updateDefinitions(listOf(MacroDefinition(1, "JJ", listOf("expanded"), false, MacroMode.IMMEDIATE)))
+
+        val mayProcessMacros = controller.beforeDirectTextCommit()
+        assertTrue(fake.proxy.commitText("JJ", 1))
+        assertFalse(controller.onDirectTextCommitted("J", mayProcessMacros))
+
+        assertEquals("JJ", fake.text)
+        assertFalse(controller.state.value.canUndo)
+    }
+
     @Test fun `complete snapshots replace only a revalidated range`() {
         val fake = FakeConnection("left JJ right", 7)
         val port = AndroidMacroEditorPort({ fake.proxy }, { InputType.TYPE_CLASS_TEXT }, { false })
@@ -29,6 +43,11 @@ class AndroidMacroEditorPortTest {
         fake.startOffset = 1
         assertNull(port.snapshot())
         fake.startOffset = 0
+        fake.partialStartOffset = 0
+        fake.partialEndOffset = 1
+        assertNull(port.snapshot())
+        fake.partialStartOffset = -1
+        fake.partialEndOffset = -1
         fake.selectionStart = 0
         assertNull(port.snapshot())
         assertNull(AndroidMacroEditorPort({ null }, { InputType.TYPE_CLASS_TEXT }, { false }).snapshot())
@@ -66,6 +85,8 @@ class AndroidMacroEditorPortTest {
         var selectionStart = cursor
         var selectionEnd = cursor
         var startOffset = 0
+        var partialStartOffset = -1
+        var partialEndOffset = -1
         var failSelection = false
         var commitCalls = 0
         var snapshotCalls = 0
@@ -77,8 +98,8 @@ class AndroidMacroEditorPortTest {
                         ExtractedText().apply {
                             text = this@FakeConnection.text
                             startOffset = this@FakeConnection.startOffset
-                            partialStartOffset = -1
-                            partialEndOffset = -1
+                            partialStartOffset = this@FakeConnection.partialStartOffset
+                            partialEndOffset = this@FakeConnection.partialEndOffset
                             selectionStart = this@FakeConnection.selectionStart
                             selectionEnd = this@FakeConnection.selectionEnd
                         }

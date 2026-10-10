@@ -28,8 +28,18 @@ class MacroController(
         clear()
     }
 
-    fun onDirectTextCommitted(text: String): Boolean {
+    fun beforeDirectTextCommit(): Boolean {
+        val hadCollapsedSelection = port.snapshot()?.hasCollapsedSelection == true
+        clear()
+        return hadCollapsedSelection
+    }
+
+    fun onDirectTextCommitted(
+        text: String,
+        mayProcessMacros: Boolean = true,
+    ): Boolean {
         undo = null
+        if (!mayProcessMacros) return publishCandidates(null)
         val snapshot = port.snapshot() ?: return publishCandidates(null)
         val automatic = MacroMatcher.matchAutomatic(definitions, snapshot, text)
         if (automatic != null) {

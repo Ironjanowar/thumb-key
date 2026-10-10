@@ -27,6 +27,18 @@ class MacroValidationTest {
     }
 
     @Test
+    fun `unicode caseless conflicts use the same folding as matching`() {
+        listOf("Straße" to "STRASSE", "ΟΣ" to "ος", "İ" to "i\u0307").forEachIndexed { index, (first, second) ->
+            val existing = MacroDefinition(id = index.toLong() + 1, key = first, expansions = listOf("x"))
+            val proposed = MacroDefinition(id = index.toLong() + 10, key = second, expansions = listOf("y"))
+            assertTrue(
+                "$first and $second must conflict",
+                MacroValidation.validate(proposed, listOf(existing)).errors.contains(MacroValidationError.KEY_CONFLICT),
+            )
+        }
+    }
+
+    @Test
     fun `overlapping case domains conflict while two sensitive keys may coexist`() {
         val insensitive = MacroDefinition(id = 1, key = "JJ", expansions = listOf("x"), caseSensitive = false)
         val sensitive = MacroDefinition(id = 2, key = "jj", expansions = listOf("y"), caseSensitive = true)
@@ -34,6 +46,26 @@ class MacroValidationTest {
 
         val upper = insensitive.copy(caseSensitive = true)
         assertTrue(MacroValidation.validate(sensitive, listOf(upper)).errors.isEmpty())
+    }
+
+    @Test
+    fun `immediate prefix warning is symmetric across mixed sensitivity`() {
+        val sensitiveImmediate =
+            MacroDefinition(id = 1, key = "A", expansions = listOf("x"), caseSensitive = true, mode = MacroMode.IMMEDIATE)
+        val insensitiveLong = MacroDefinition(id = 2, key = "ab", expansions = listOf("y"), caseSensitive = false)
+
+        assertTrue(
+            MacroValidation
+                .validate(insensitiveLong, listOf(sensitiveImmediate))
+                .warnings
+                .contains(MacroValidationWarning.IMMEDIATE_PREFIX),
+        )
+        assertTrue(
+            MacroValidation
+                .validate(sensitiveImmediate, listOf(insensitiveLong))
+                .warnings
+                .contains(MacroValidationWarning.IMMEDIATE_PREFIX),
+        )
     }
 
     @Test

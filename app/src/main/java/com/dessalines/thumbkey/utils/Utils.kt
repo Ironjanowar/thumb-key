@@ -356,14 +356,14 @@ fun performKeyAction(
     when (action) {
         is KeyAction.CommitText -> {
             val text = action.text
-            ime.macroController.beforeExplicitEdit()
+            val mayProcessMacros = ime.macroController.beforeDirectTextCommit()
             ime.ignoreNextCursorMove()
 
             val textProcessor = keyboardSettings.textProcessor
             if (textProcessor != null) {
                 textProcessor.handleCommitText(ime, text)
             } else if (ime.currentInputConnection.commitText(text, 1)) {
-                ime.macroController.onDirectTextCommitted(text)
+                ime.macroController.onDirectTextCommitted(text, mayProcessMacros)
             }
 
             if (autoCapitalize && keyboardSettings.autoShift) {

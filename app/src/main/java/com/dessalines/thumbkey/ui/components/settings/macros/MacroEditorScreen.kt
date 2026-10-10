@@ -20,7 +20,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -29,6 +30,7 @@ import androidx.navigation.NavController
 import com.dessalines.thumbkey.R
 import com.dessalines.thumbkey.macros.MacroMode
 import com.dessalines.thumbkey.macros.MacroValidation
+import com.dessalines.thumbkey.macros.MacroValidationError
 import com.dessalines.thumbkey.utils.SimpleTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,8 +42,10 @@ fun MacroEditorScreen(
 ) {
     val macros by viewModel.macros.collectAsState()
     val existing = macros.firstOrNull { it.id == id }
-    var draft by remember(id, existing) { mutableStateOf(MacroEditorDraft.from(existing)) }
-    var error by remember { mutableStateOf<String?>(null) }
+    var draft by rememberSaveable(id, existing, stateSaver = MacroEditorDraftSaver) {
+        mutableStateOf(MacroEditorDraft.from(existing))
+    }
+    var error by rememberSaveable { mutableStateOf<String?>(null) }
     val validation = MacroValidation.validate(draft.toDefinition(), macros)
 
     Scaffold(topBar = {
@@ -75,7 +79,17 @@ fun MacroEditorScreen(
                     error = null
                 },
                 label = { Text(stringResource(R.string.macro_key)) },
-                isError = validation.errors.isNotEmpty() && draft.key.isEmpty(),
+                isError =
+                    MacroValidationError.INVALID_KEY in validation.errors ||
+                        MacroValidationError.KEY_CONFLICT in validation.errors,
+                supportingText = {
+                    if (
+                        MacroValidationError.INVALID_KEY in validation.errors ||
+                        MacroValidationError.KEY_CONFLICT in validation.errors
+                    ) {
+                        Text(stringResource(R.string.macro_validation_error))
+                    }
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
             draft.expansions.forEachIndexed { index, expansion ->
@@ -85,6 +99,17 @@ fun MacroEditorScreen(
                         draft = draft.copy(expansions = draft.expansions.toMutableList().also { it[index] = value })
                     },
                     label = { Text(stringResource(R.string.macro_expansion_number, index + 1)) },
+                    isError =
+                        MacroValidationError.EMPTY_EXPANSION in validation.errors ||
+                            MacroValidationError.EMPTY_EXPANSIONS in validation.errors,
+                    supportingText = {
+                        if (
+                            MacroValidationError.EMPTY_EXPANSION in validation.errors ||
+                            MacroValidationError.EMPTY_EXPANSIONS in validation.errors
+                        ) {
+                            Text(stringResource(R.string.macro_validation_error))
+                        }
+                    },
                     minLines = 2,
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -111,7 +136,9 @@ fun MacroEditorScreen(
                 Text(stringResource(R.string.macro_case_sensitive), Modifier.padding(top = 12.dp))
             }
             if (validation.warnings.isNotEmpty()) Text(stringResource(R.string.macro_prefix_warning))
-            if (validation.errors.isNotEmpty()) Text(stringResource(R.string.macro_validation_error))
+            if (MacroValidationError.MULTIPLE_AUTOMATIC_EXPANSIONS in validation.errors) {
+                Text(stringResource(R.string.macro_validation_error))
+            }
             error?.let { Text(it) }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.cancel)) }
@@ -123,6 +150,23 @@ fun MacroEditorScreen(
         }
     }
 }
+
+private val MacroEditorDraftSaver =
+    listSaver<MacroEditorDraft, Any>(
+        save = { draft ->
+            listOf(draft.id, draft.key, ArrayList(draft.expansions), draft.caseSensitive, draft.mode.name)
+        },
+        restore = { saved ->
+            @Suppress("UNCHECKED_CAST")
+            MacroEditorDraft(
+                id = saved[0] as Long,
+                key = saved[1] as String,
+                expansions = saved[2] as ArrayList<String>,
+                caseSensitive = saved[3] as Boolean,
+                mode = MacroMode.valueOf(saved[4] as String),
+            )
+        },
+    )
 
 private fun MacroMode.labelResource(): Int =
     when (this) {

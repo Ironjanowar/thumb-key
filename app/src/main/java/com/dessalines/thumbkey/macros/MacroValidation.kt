@@ -31,8 +31,8 @@ object MacroValidation {
         existing.filter { it.id != macro.id }.forEach { other ->
             if (domainsOverlap(macro, other)) errors += MacroValidationError.KEY_CONFLICT
             if (
-                (other.mode == MacroMode.IMMEDIATE && startsWith(macro.key, other.key, other.caseSensitive)) ||
-                (macro.mode == MacroMode.IMMEDIATE && startsWith(other.key, macro.key, macro.caseSensitive))
+                (other.mode == MacroMode.IMMEDIATE && startsWith(macro, other)) ||
+                (macro.mode == MacroMode.IMMEDIATE && startsWith(other, macro))
             ) {
                 warnings += MacroValidationWarning.IMMEDIATE_PREFIX
             }
@@ -54,10 +54,36 @@ object MacroValidation {
     ): Boolean = if (a.caseSensitive && b.caseSensitive) a.key == b.key else fold(a.key) == fold(b.key)
 
     private fun startsWith(
-        value: String,
-        prefix: String,
-        sensitive: Boolean,
-    ): Boolean = if (sensitive) value.startsWith(prefix) else fold(value).startsWith(fold(prefix))
+        value: MacroDefinition,
+        prefix: MacroDefinition,
+    ): Boolean =
+        if (value.caseSensitive && prefix.caseSensitive) {
+            value.key.startsWith(prefix.key)
+        } else {
+            fold(value.key).startsWith(fold(prefix.key))
+        }
 
-    internal fun fold(value: String): String = value.lowercase(Locale.ROOT)
+    internal fun fold(value: String): String =
+        buildString {
+            value.codePoints().forEachOrdered { codePoint ->
+                when (codePoint) {
+                    0x0131 -> {
+                        // Dotless i is distinct in default Unicode folding.
+                        appendCodePoint(codePoint)
+                    }
+
+                    0x00df, 0x1e9e -> {
+                        append("ss")
+                    }
+
+                    else -> {
+                        append(
+                            String(Character.toChars(codePoint))
+                                .uppercase(Locale.ROOT)
+                                .lowercase(Locale.ROOT),
+                        )
+                    }
+                }
+            }
+        }
 }

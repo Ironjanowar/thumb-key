@@ -70,12 +70,31 @@ object MacroMatcher {
         text: String,
         end: Int,
     ): IntRange? {
-        val start = end - macro.key.length
-        if (start < 0 || end > text.length) return null
+        if (end !in 0..text.length) return null
+        val start =
+            if (macro.caseSensitive) {
+                end - macro.key.length
+            } else {
+                wordStart(text, end)
+            }
+        if (start < 0) return null
         val actual = text.substring(start, end)
         val equal = if (macro.caseSensitive) actual == macro.key else MacroValidation.fold(actual) == MacroValidation.fold(macro.key)
         if (!equal || !isWordBoundary(text, start)) return null
         return start until end
+    }
+
+    private fun wordStart(
+        text: String,
+        end: Int,
+    ): Int {
+        var offset = end
+        while (offset > 0) {
+            val cp = text.codePointBefore(offset)
+            if (isBoundaryCodePoint(cp)) break
+            offset -= Character.charCount(cp)
+        }
+        return offset
     }
 
     private fun isWordBoundary(
@@ -84,14 +103,17 @@ object MacroMatcher {
     ): Boolean {
         if (offset == 0) return true
         val cp = text.codePointBefore(offset)
-        return Character.isWhitespace(cp) || Character.getType(cp) in punctuationTypes
+        return isBoundaryCodePoint(cp)
     }
 
     fun isSeparator(value: String): Boolean =
         value.isNotEmpty() &&
             value.codePoints().allMatch { cp ->
-                Character.isWhitespace(cp) || Character.getType(cp) in punctuationTypes
+                isBoundaryCodePoint(cp)
             }
+
+    private fun isBoundaryCodePoint(cp: Int): Boolean =
+        Character.isWhitespace(cp) || Character.isSpaceChar(cp) || Character.getType(cp) in punctuationTypes
 
     private val punctuationTypes =
         setOf(

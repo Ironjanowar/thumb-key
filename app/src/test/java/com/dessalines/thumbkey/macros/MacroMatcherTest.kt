@@ -24,6 +24,15 @@ class MacroMatcherTest {
         assertEquals(",", comma.separator)
     }
 
+    @Test fun `unicode space separators trigger and establish word boundaries`() {
+        val nbsp = "\u00a0"
+        val trigger = MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJ$nbsp", 3, 3), nbsp)
+        assertEquals(nbsp, trigger?.separator)
+
+        val afterBoundary = MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot("x${nbsp}JJ", 4, 4), "J")
+        assertEquals(2 until 4, afterBoundary?.keyRange)
+    }
+
     @Test fun `manual match requires cursor immediately after complete key`() {
         assertEquals(
             listOf("Hola", "Buenas", "¿Qué tal?"),
@@ -36,6 +45,36 @@ class MacroMatcherTest {
     @Test fun `matching is root case insensitive unless requested`() {
         assertEquals("Jj", MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot("Jj", 2, 2), "j")?.originalKey)
         assertNull(MacroMatcher.matchAutomatic(listOf(immediate.copy(caseSensitive = true)), MacroSnapshot("Jj", 2, 2), "j"))
+    }
+
+    @Test fun `unicode caseless matching handles folds whose UTF16 lengths differ`() {
+        val cases =
+            listOf(
+                "ΟΣ" to "ος",
+                "ΟΣ" to "οσ",
+                "STRASSE" to "Straße",
+                "İ" to "i\u0307",
+            )
+        cases.forEachIndexed { index, (key, typed) ->
+            val definition = immediate.copy(id = 10L + index, key = key)
+            val match = MacroMatcher.matchAutomatic(listOf(definition), MacroSnapshot(typed, typed.length, typed.length), typed.takeLast(1))
+            assertEquals("caseless match for $key / $typed", typed, match?.originalKey)
+            assertEquals(0 until typed.length, match?.keyRange)
+        }
+        assertNull(
+            MacroMatcher.matchAutomatic(
+                listOf(immediate.copy(key = "I")),
+                MacroSnapshot("ı", 1, 1),
+                "ı",
+            ),
+        )
+        assertNull(
+            MacroMatcher.matchAutomatic(
+                listOf(immediate.copy(key = "cafe")),
+                MacroSnapshot("café", 4, 4),
+                "é",
+            ),
+        )
     }
 
     @Test fun `send actions and selected snapshots never match`() {

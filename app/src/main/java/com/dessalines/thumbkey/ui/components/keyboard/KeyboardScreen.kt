@@ -1203,13 +1203,18 @@ fun KeyboardScreen(
                 Box { drawKeyboards() }
             }
         } else {
-            Column {
+            // The key grid must keep its measured size inside the fixed-height IME window when the
+            // bar appears or disappears, so the bar overlays the keyboard surface instead of
+            // adding a row that grows, shifts or clips it. MacroBar renders nothing when there is
+            // no candidate or undo to show.
+            Box {
+                drawKeyboards()
                 MacroBar(
                     state = macroState,
+                    modifier = Modifier.align(Alignment.TopCenter),
                     onCandidate = { ctx.macroController.acceptCandidate(it) },
                     onUndo = { ctx.macroController.undo() },
                 )
-                Box { drawKeyboards() }
             }
         }
     }

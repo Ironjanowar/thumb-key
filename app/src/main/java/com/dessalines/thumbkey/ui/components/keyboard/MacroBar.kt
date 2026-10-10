@@ -23,11 +23,12 @@ import com.dessalines.thumbkey.macros.MacroUiState
 @Composable
 fun MacroBar(
     state: MacroUiState,
+    modifier: Modifier = Modifier,
     onCandidate: (Int) -> Unit,
     onUndo: () -> Unit,
 ) {
     if (!state.canUndo && state.candidates.isEmpty()) return
-    Surface(color = MaterialTheme.colorScheme.surfaceVariant, modifier = Modifier.fillMaxWidth()) {
+    Surface(color = MaterialTheme.colorScheme.surfaceVariant, modifier = modifier.fillMaxWidth()) {
         Row(
             Modifier
                 .fillMaxWidth()

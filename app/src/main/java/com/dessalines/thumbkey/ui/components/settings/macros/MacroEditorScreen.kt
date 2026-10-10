@@ -30,7 +30,7 @@ import androidx.navigation.NavController
 import com.dessalines.thumbkey.R
 import com.dessalines.thumbkey.macros.MacroMode
 import com.dessalines.thumbkey.macros.MacroValidation
-import com.dessalines.thumbkey.macros.MacroValidationError
+import com.dessalines.thumbkey.macros.MacroValidationMessages
 import com.dessalines.thumbkey.utils.SimpleTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,6 +47,9 @@ fun MacroEditorScreen(
     }
     var error by rememberSaveable { mutableStateOf<String?>(null) }
     val validation = MacroValidation.validate(draft.toDefinition(), macros)
+    val keyMessages = MacroValidationMessages.messagesFor(MacroValidationMessages.MacroEditorControl.KEY, validation.errors)
+    val expansionMessages = MacroValidationMessages.messagesFor(MacroValidationMessages.MacroEditorControl.EXPANSIONS, validation.errors)
+    val modeMessages = MacroValidationMessages.messagesFor(MacroValidationMessages.MacroEditorControl.MODE, validation.errors)
 
     Scaffold(topBar = {
         SimpleTopAppBar(
@@ -79,15 +82,10 @@ fun MacroEditorScreen(
                     error = null
                 },
                 label = { Text(stringResource(R.string.macro_key)) },
-                isError =
-                    MacroValidationError.INVALID_KEY in validation.errors ||
-                        MacroValidationError.KEY_CONFLICT in validation.errors,
+                isError = keyMessages.isNotEmpty(),
                 supportingText = {
-                    if (
-                        MacroValidationError.INVALID_KEY in validation.errors ||
-                        MacroValidationError.KEY_CONFLICT in validation.errors
-                    ) {
-                        Text(stringResource(R.string.macro_validation_error))
+                    if (keyMessages.isNotEmpty()) {
+                        Column { keyMessages.forEach { Text(stringResource(it)) } }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -99,15 +97,10 @@ fun MacroEditorScreen(
                         draft = draft.copy(expansions = draft.expansions.toMutableList().also { it[index] = value })
                     },
                     label = { Text(stringResource(R.string.macro_expansion_number, index + 1)) },
-                    isError =
-                        MacroValidationError.EMPTY_EXPANSION in validation.errors ||
-                            MacroValidationError.EMPTY_EXPANSIONS in validation.errors,
+                    isError = expansionMessages.isNotEmpty(),
                     supportingText = {
-                        if (
-                            MacroValidationError.EMPTY_EXPANSION in validation.errors ||
-                            MacroValidationError.EMPTY_EXPANSIONS in validation.errors
-                        ) {
-                            Text(stringResource(R.string.macro_validation_error))
+                        if (expansionMessages.isNotEmpty()) {
+                            Column { expansionMessages.forEach { Text(stringResource(it)) } }
                         }
                     },
                     minLines = 2,
@@ -135,10 +128,10 @@ fun MacroEditorScreen(
                 Checkbox(checked = draft.caseSensitive, onCheckedChange = { draft = draft.copy(caseSensitive = it) })
                 Text(stringResource(R.string.macro_case_sensitive), Modifier.padding(top = 12.dp))
             }
-            if (validation.warnings.isNotEmpty()) Text(stringResource(R.string.macro_prefix_warning))
-            if (MacroValidationError.MULTIPLE_AUTOMATIC_EXPANSIONS in validation.errors) {
-                Text(stringResource(R.string.macro_validation_error))
+            if (modeMessages.isNotEmpty()) {
+                Column { modeMessages.forEach { Text(stringResource(it)) } }
             }
+            if (validation.warnings.isNotEmpty()) Text(stringResource(R.string.macro_prefix_warning))
             error?.let { Text(it) }
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 Button(onClick = { navController.popBackStack() }) { Text(stringResource(R.string.cancel)) }

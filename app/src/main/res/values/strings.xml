@@ -204,7 +204,10 @@
     <string name="macro_mode_immediate">Immediate</string>
     <string name="macro_mode_separator">After space or punctuation</string>
     <string name="macro_prefix_warning">Warning: an immediate shorter key may expand before this key is complete.</string>
-    <string name="macro_validation_error">Fix the key or expansions before saving. A key cannot be empty and cannot contain spaces.</string>
+    <string name="macro_error_invalid_key">A key can\'t be empty or contain spaces or line breaks.</string>
+    <string name="macro_error_key_conflict">Another macro already uses this key.</string>
+    <string name="macro_error_empty_expansion">Add at least one expansion; it can\'t be empty.</string>
+    <string name="macro_error_multiple_automatic">A macro with several expansions must use Manual mode.</string>
     <string name="macro_undo">Undo expansion</string>
     <string name="macro_delete_confirm_title">Delete macro?</string>
     <string name="macro_delete_confirm_text">This removes the key and all of its expansions.</string>

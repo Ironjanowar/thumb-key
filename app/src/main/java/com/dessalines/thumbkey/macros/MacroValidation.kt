@@ -41,8 +41,10 @@ object MacroValidation {
     }
 
     /**
-     * A key may not contain whitespace or a line break: those code points are exactly what the macro
-     * engine reads as a separator, so a key built from them could never be recognised.
+     * A key may not contain whitespace or a line break. Those code points are what end a word and
+     * what trigger separator-mode macros, so a key built from or containing them could never be
+     * reliably recognised: it is ambiguous with the macro separator. Punctuation inside a key is
+     * fine and deliberately allowed.
      */
     private fun isSeparatorCodePoint(codePoint: Int): Boolean = Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint)
 

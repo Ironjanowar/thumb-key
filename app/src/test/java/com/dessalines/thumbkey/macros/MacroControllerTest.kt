@@ -73,6 +73,32 @@ class MacroControllerTest {
         assertFalse(controller.state.value.canUndo)
     }
 
+    @Test fun `selection callbacks never create candidates for pasted or repositioned text`() {
+        val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
+        val port = FakePort("saludo", 6)
+        val controller = MacroController(port)
+        controller.updateDefinitions(listOf(manual))
+
+        controller.onSelectionChanged()
+
+        assertTrue(
+            controller.state.value.candidates
+                .isEmpty(),
+        )
+    }
+
+    @Test fun `matching duplicate callback preserves manual candidates`() {
+        val manual = MacroDefinition(2, "saludo", listOf("Hola", "Buenas"))
+        val port = FakePort("saludo", 6)
+        val controller = MacroController(port)
+        controller.updateDefinitions(listOf(manual))
+        controller.onDirectTextCommitted("o")
+
+        controller.onSelectionChanged()
+
+        assertEquals(listOf("Hola", "Buenas"), controller.state.value.candidates)
+    }
+
     @Test fun `failed or unconfirmed replacement never publishes undo`() {
         val port = FakePort("JJ", 2).apply { failReplacement = true }
         val controller = MacroController(port)

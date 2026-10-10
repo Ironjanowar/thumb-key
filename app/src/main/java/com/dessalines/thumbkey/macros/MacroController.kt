@@ -69,8 +69,8 @@ class MacroController(
     fun onSelectionChanged() {
         val current = port.snapshot()
         if (undo != null && current == undo?.expected) return
+        if (manual != null && current == manual?.snapshot) return
         clear()
-        if (current != null) publishCandidates(MacroMatcher.manualCandidates(definitions, current), current)
     }
 
     private fun publishCandidates(

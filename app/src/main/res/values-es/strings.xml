@@ -172,4 +172,25 @@
     <string name="editing_delete_next_character">Borrar carácter siguiente</string>
     <string name="editing_delete_previous_word">Borrar palabra anterior</string>
     <string name="editing_delete_next_word">Borrar palabra siguiente</string>
+    <string name="macros">Macros personales</string>
+    <string name="macros_summary">Expande tus propios atajos de forma local</string>
+    <string name="macros_empty">Todavía no hay macros. Añade una para crear un atajo de texto.</string>
+    <string name="macro_add">Añadir macro</string>
+    <string name="macro_edit">Editar macro</string>
+    <string name="macro_key">Clave</string>
+    <string name="macro_expansion_number">Expansión %1$d</string>
+    <string name="macro_add_expansion">Añadir expansión</string>
+    <string name="macro_multiple_manual_explanation">Las macros con varias expansiones son manuales para que puedas elegir el texto.</string>
+    <string name="macro_case_sensitive">Distinguir mayúsculas</string>
+    <string name="macro_mode_manual">Manual</string>
+    <string name="macro_mode_immediate">Inmediata</string>
+    <string name="macro_mode_separator">Después de espacio o puntuación</string>
+    <string name="macro_prefix_warning">Aviso: una clave inmediata más corta puede expandirse antes de completar esta clave.</string>
+    <string name="macro_validation_error">Corrige la clave o las expansiones antes de guardar. La clave solo admite letras, marcas y números Unicode.</string>
+    <string name="macro_undo">Deshacer expansión</string>
+    <string name="macro_delete_confirm_title">¿Eliminar macro?</string>
+    <string name="macro_delete_confirm_text">Se eliminarán la clave y todas sus expansiones.</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="remove">Quitar</string>
 </resources>

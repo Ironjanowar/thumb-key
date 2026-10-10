@@ -475,6 +475,7 @@ fun KeyboardKey(
             .pointerInput(key1 = id) {
                 detectDragGestures(
                     onDragStart = {
+                        ime.macroController.beforeExplicitEdit()
                         isDragged.value = true
                     },
                     onDrag = { change, dragAmount ->

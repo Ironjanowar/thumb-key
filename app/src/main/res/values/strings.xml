@@ -190,4 +190,25 @@
     <string name="editing_delete_next_character">Delete next character</string>
     <string name="editing_delete_previous_word">Delete previous word</string>
     <string name="editing_delete_next_word">Delete next word</string>
+    <string name="macros">Personal macros</string>
+    <string name="macros_summary">Expand your own shortcuts locally</string>
+    <string name="macros_empty">No macros yet. Add one to create a text shortcut.</string>
+    <string name="macro_add">Add macro</string>
+    <string name="macro_edit">Edit macro</string>
+    <string name="macro_key">Key</string>
+    <string name="macro_expansion_number">Expansion %1$d</string>
+    <string name="macro_add_expansion">Add expansion</string>
+    <string name="macro_multiple_manual_explanation">Macros with several expansions are manual so you can choose the text.</string>
+    <string name="macro_case_sensitive">Match uppercase and lowercase exactly</string>
+    <string name="macro_mode_manual">Manual</string>
+    <string name="macro_mode_immediate">Immediate</string>
+    <string name="macro_mode_separator">After space or punctuation</string>
+    <string name="macro_prefix_warning">Warning: an immediate shorter key may expand before this key is complete.</string>
+    <string name="macro_validation_error">Fix the key or expansions before saving. Keys may contain only Unicode letters, marks and numbers.</string>
+    <string name="macro_undo">Undo expansion</string>
+    <string name="macro_delete_confirm_title">Delete macro?</string>
+    <string name="macro_delete_confirm_text">This removes the key and all of its expansions.</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+    <string name="remove">Remove</string>
 </resources>

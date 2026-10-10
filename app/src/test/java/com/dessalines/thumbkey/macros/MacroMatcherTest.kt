@@ -25,7 +25,10 @@ class MacroMatcherTest {
     }
 
     @Test fun `manual match requires cursor immediately after complete key`() {
-        assertEquals(listOf("Hola", "Buenas", "¿Qué tal?"), MacroMatcher.manualCandidates(listOf(manual), MacroSnapshot("x. saludo", 9, 9))?.expansions)
+        assertEquals(
+            listOf("Hola", "Buenas", "¿Qué tal?"),
+            MacroMatcher.manualCandidates(listOf(manual), MacroSnapshot("x. saludo", 9, 9))?.expansions,
+        )
         assertNull(MacroMatcher.manualCandidates(listOf(manual), MacroSnapshot("saludo ", 7, 7)))
         assertNull(MacroMatcher.manualCandidates(listOf(manual), MacroSnapshot("salud", 5, 5)))
     }

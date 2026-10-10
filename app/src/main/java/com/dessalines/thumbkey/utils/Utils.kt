@@ -352,17 +352,19 @@ fun performKeyAction(
     onKeyEvent: (action: KeyAction) -> Unit,
     onSketchAction: (action: KeyAction.Sketch) -> Unit = {},
 ) {
+    if (action !is KeyAction.CommitText) ime.macroController.beforeExplicitEdit()
     when (action) {
         is KeyAction.CommitText -> {
             val text = action.text
-            Log.d(TAG, "committing key text: $text")
+            ime.macroController.beforeExplicitEdit()
             ime.ignoreNextCursorMove()
 
-            keyboardSettings.textProcessor?.handleCommitText(ime, text)
-                ?: ime.currentInputConnection.commitText(
-                    text,
-                    1,
-                )
+            val textProcessor = keyboardSettings.textProcessor
+            if (textProcessor != null) {
+                textProcessor.handleCommitText(ime, text)
+            } else if (ime.currentInputConnection.commitText(text, 1)) {
+                ime.macroController.onDirectTextCommitted(text)
+            }
 
             if (autoCapitalize && keyboardSettings.autoShift) {
                 autoCapitalize(

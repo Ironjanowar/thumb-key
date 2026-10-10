@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -112,6 +113,7 @@ fun KeyboardScreen(
     onGoToClipboardSettings: () -> Unit,
 ) {
     val ctx = LocalContext.current as IMEService
+    val macroState by ctx.macroController.state.collectAsState()
 
     val layout =
         KeyboardLayout.entries.sortedBy { it.ordinal }[
@@ -346,6 +348,7 @@ fun KeyboardScreen(
                                     if (soundOnTap) {
                                         audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK, .1f)
                                     }
+                                    ctx.macroController.beforeExplicitEdit()
                                     ctx.currentInputConnection.commitText(it.emoji, 1)
                                 }
                                 emojiPicker
@@ -544,6 +547,7 @@ fun KeyboardScreen(
                                     if (soundOnTap) {
                                         audioManager.playSoundEffect(AudioManager.FX_KEY_CLICK, .1f)
                                     }
+                                    ctx.macroController.beforeExplicitEdit()
                                     ctx.currentInputConnection.commitText(
                                         it.emoji,
                                         1,
@@ -770,11 +774,13 @@ fun KeyboardScreen(
                     isEnabled = clipboardHistoryEnabled,
                     onItemClick = { item ->
                         // Paste and return to keyboard
+                        ctx.macroController.beforeExplicitEdit()
                         ctx.currentInputConnection.commitText(item.text, 1)
                         mode = KeyboardMode.MAIN
                     },
                     onItemPaste = { item ->
                         // Paste WITHOUT returning to keyboard
+                        ctx.macroController.beforeExplicitEdit()
                         ctx.currentInputConnection.commitText(item.text, 1)
                     },
                     onItemDelete = { item ->
@@ -857,6 +863,7 @@ fun KeyboardScreen(
                     onCommit = { text ->
                         // Straight to the text field: the layout's text processor and
                         // auto-capitalization don't apply to a drawn character.
+                        ctx.macroController.beforeExplicitEdit()
                         ctx.ignoreNextCursorMove()
                         ctx.appInputConnection.commitText(text, 1)
                     },
@@ -1183,6 +1190,7 @@ fun KeyboardScreen(
                         sketch.searching = false
                         sketch.list = null
                         ctx.setInputRedirect(null)
+                        ctx.macroController.beforeExplicitEdit()
                         ctx.ignoreNextCursorMove()
                         ctx.appInputConnection.commitText(text, 1)
                         mode = KeyboardMode.SKETCH
@@ -1195,7 +1203,14 @@ fun KeyboardScreen(
                 Box { drawKeyboards() }
             }
         } else {
-            drawKeyboards()
+            Column {
+                MacroBar(
+                    state = macroState,
+                    onCandidate = { ctx.macroController.acceptCandidate(it) },
+                    onUndo = { ctx.macroController.undo() },
+                )
+                Box { drawKeyboards() }
+            }
         }
     }
 }

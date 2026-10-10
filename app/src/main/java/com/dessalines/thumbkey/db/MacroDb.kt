@@ -29,7 +29,14 @@ data class MacroEntity(
 @Entity(
     tableName = "macro_expansions",
     primaryKeys = ["macro_id", "position"],
-    foreignKeys = [ForeignKey(entity = MacroEntity::class, parentColumns = ["id"], childColumns = ["macro_id"], onDelete = ForeignKey.CASCADE)],
+    foreignKeys = [
+        ForeignKey(
+            entity = MacroEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["macro_id"],
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
     indices = [Index("macro_id")],
 )
 data class MacroExpansionEntity(
@@ -45,13 +52,25 @@ data class MacroWithExpansions(
 
 @Dao
 interface MacroDao {
-    @Transaction @Query("SELECT * FROM macros ORDER BY id") fun observeAll(): Flow<List<MacroWithExpansions>>
-    @Transaction @Query("SELECT * FROM macros ORDER BY id") suspend fun getAll(): List<MacroWithExpansions>
+    @Transaction
+    @Query("SELECT * FROM macros ORDER BY id")
+    fun observeAll(): Flow<List<MacroWithExpansions>>
+
+    @Transaction
+    @Query("SELECT * FROM macros ORDER BY id")
+    suspend fun getAll(): List<MacroWithExpansions>
+
     @Insert suspend fun insert(entity: MacroEntity): Long
+
     @Update suspend fun update(entity: MacroEntity)
+
     @Insert suspend fun insertExpansions(entities: List<MacroExpansionEntity>)
-    @Query("DELETE FROM macro_expansions WHERE macro_id = :macroId") suspend fun deleteExpansions(macroId: Long)
-    @Query("DELETE FROM macros WHERE id = :id") suspend fun delete(id: Long)
+
+    @Query("DELETE FROM macro_expansions WHERE macro_id = :macroId")
+    suspend fun deleteExpansions(macroId: Long)
+
+    @Query("DELETE FROM macros WHERE id = :id")
+    suspend fun delete(id: Long)
 }
 
 @Database(version = 1, entities = [MacroEntity::class, MacroExpansionEntity::class], exportSchema = true)
@@ -60,8 +79,11 @@ abstract class MacroDB : RoomDatabase() {
 
     companion object {
         @Volatile private var instance: MacroDB? = null
-        fun getDatabase(context: Context): MacroDB = instance ?: synchronized(this) {
-            instance ?: Room.databaseBuilder(context.applicationContext, MacroDB::class.java, "macros_db").build().also { instance = it }
-        }
+
+        fun getDatabase(context: Context): MacroDB =
+            instance ?: synchronized(this) {
+                instance
+                    ?: Room.databaseBuilder(context.applicationContext, MacroDB::class.java, "macros_db").build().also { instance = it }
+            }
     }
 }

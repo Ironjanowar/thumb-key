@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.SavedStateRegistry
@@ -23,6 +24,8 @@ import com.dessalines.thumbkey.db.DEFAULT_SHOW_ON_SCREEN_KEYBOARD
 import com.dessalines.thumbkey.db.DEFAULT_USE_PRIVATE_CLIPBOARD
 import com.dessalines.thumbkey.editing.AndroidEditingPort
 import com.dessalines.thumbkey.editing.EditingController
+import com.dessalines.thumbkey.macros.AndroidMacroEditorPort
+import com.dessalines.thumbkey.macros.MacroController
 import com.dessalines.thumbkey.ui.components.keyboard.SketchState
 import com.dessalines.thumbkey.utils.KeyboardDefinition
 import com.dessalines.thumbkey.utils.KeyboardLayout
@@ -30,6 +33,8 @@ import com.dessalines.thumbkey.utils.TAG
 import com.dessalines.thumbkey.utils.ThumbKeyClipboardManager
 import com.dessalines.thumbkey.utils.resolveKeyboardDefinition
 import com.dessalines.thumbkey.utils.toBool
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class IMEService :
     InputMethodService(),
@@ -68,6 +73,18 @@ class IMEService :
     val editingController: EditingController by lazy {
         EditingController(AndroidEditingPort(this)) { active -> editingMarkActive.value = active }
     }
+    val macroController: MacroController by lazy {
+        MacroController(
+            AndroidMacroEditorPort(
+                connection = { runCatching { appInputConnection }.getOrNull() },
+                inputType = { currentInputEditorInfo?.inputType ?: EditorInfo.TYPE_NULL },
+                typingIntoOwnField = {
+                    isTypingIntoOwnField || currentInputEditorInfo?.packageName == packageName
+                },
+                compositionActive = { macroCompositionActive },
+            ),
+        )
+    }
 
     // While set, the keys type into this field of the keyboard's own, like sketch mode's
     // search, instead of the app's
@@ -75,6 +92,7 @@ class IMEService :
 
     fun setInputRedirect(connection: InputConnection?) {
         inputRedirect = connection
+        macroController.beforeExplicitEdit()
     }
 
     /**
@@ -106,6 +124,8 @@ class IMEService :
     ) {
         super.onStartInput(attribute, restarting)
         editingController.startSession()
+        macroController.startSession()
+        macroCompositionActive = false
         setInputRedirect(null)
         // A new keyboard opens on the letters: close sketch mode's search and lists, but keep
         // its drawing
@@ -132,6 +152,9 @@ class IMEService :
         clipboardManager = ThumbKeyClipboardManager(this, app.clipboardRepository)
         clipboardManager?.startListening()
         clipboardManager?.clearExpired()
+        lifecycleScope.launch {
+            (application as ThumbkeyApplication).macroRepository.macros.collectLatest(macroController::updateDefinitions)
+        }
     }
 
     override fun onDestroy() {
@@ -207,6 +230,8 @@ class IMEService :
 
     override fun onFinishInput() {
         editingController.finishSession()
+        macroController.finishSession()
+        macroCompositionActive = false
         super.onFinishInput()
     }
 
@@ -219,10 +244,13 @@ class IMEService :
         candidatesEnd: Int,
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
+        macroCompositionActive = candidatesStart >= 0 || candidatesEnd >= 0
         editingController.onSelectionUpdate(newSelStart, newSelEnd)
+        macroController.onSelectionChanged()
     }
 
     private var ignoreCursorMove: Boolean = false
+    private var macroCompositionActive: Boolean = false
     private var cursorMoved: Boolean = false
     private var selectionStart: Int = 0
     private var selectionEnd: Int = 0

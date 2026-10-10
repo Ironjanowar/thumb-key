@@ -23,6 +23,8 @@ import com.dessalines.thumbkey.db.AppSettingsViewModel
 import com.dessalines.thumbkey.db.AppSettingsViewModelFactory
 import com.dessalines.thumbkey.db.ClipboardDB
 import com.dessalines.thumbkey.db.ClipboardRepository
+import com.dessalines.thumbkey.db.MacroDB
+import com.dessalines.thumbkey.db.MacroRepository
 import com.dessalines.thumbkey.ui.components.common.ShowChangelog
 import com.dessalines.thumbkey.ui.components.settings.SettingsScreen
 import com.dessalines.thumbkey.ui.components.settings.about.AboutScreen
@@ -30,6 +32,10 @@ import com.dessalines.thumbkey.ui.components.settings.backupandrestore.BackupAnd
 import com.dessalines.thumbkey.ui.components.settings.behavior.BehaviorScreen
 import com.dessalines.thumbkey.ui.components.settings.clipboard.ClipboardSettingsScreen
 import com.dessalines.thumbkey.ui.components.settings.lookandfeel.LookAndFeelScreen
+import com.dessalines.thumbkey.ui.components.settings.macros.MacroEditorScreen
+import com.dessalines.thumbkey.ui.components.settings.macros.MacroSettingsScreen
+import com.dessalines.thumbkey.ui.components.settings.macros.MacroSettingsViewModel
+import com.dessalines.thumbkey.ui.components.settings.macros.MacroSettingsViewModelFactory
 import com.dessalines.thumbkey.ui.components.settings.modifykeys.ModifyKeysScreen
 import com.dessalines.thumbkey.ui.components.settings.other.OtherSettingsScreen
 import com.dessalines.thumbkey.ui.components.setup.SetupScreen
@@ -43,6 +49,7 @@ import splitties.systemservices.inputMethodManager
 class ThumbkeyApplication : Application() {
     private val database by lazy { AppDB.getDatabase(this) }
     private val clipboardDatabase by lazy { ClipboardDB.getDatabase(this) }
+    private val macroDatabase by lazy { MacroDB.getDatabase(this) }
     val appSettingsRepository by lazy { AppSettingsRepository(database.appSettingsDao()) }
     val clipboardRepository by lazy {
         ClipboardRepository(
@@ -50,11 +57,15 @@ class ThumbkeyApplication : Application() {
             database.appSettingsDao(),
         )
     }
+    val macroRepository by lazy { MacroRepository(macroDatabase) }
 }
 
 class MainActivity : AppCompatActivity() {
     private val appSettingsViewModel: AppSettingsViewModel by viewModels {
         AppSettingsViewModelFactory((application as ThumbkeyApplication).appSettingsRepository)
+    }
+    private val macroSettingsViewModel: MacroSettingsViewModel by viewModels {
+        MacroSettingsViewModelFactory((application as ThumbkeyApplication).macroRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -160,6 +171,16 @@ class MainActivity : AppCompatActivity() {
                             navController = navController,
                             appSettingsViewModel = appSettingsViewModel,
                             clipboardRepository = (application as ThumbkeyApplication).clipboardRepository,
+                        )
+                    }
+                    composable(route = "macros") {
+                        MacroSettingsScreen(navController, macroSettingsViewModel)
+                    }
+                    composable(route = "macroEditor/{id}") { entry ->
+                        MacroEditorScreen(
+                            entry.arguments?.getString("id")?.toLongOrNull() ?: 0,
+                            navController,
+                            macroSettingsViewModel,
                         )
                     }
                     composable(route = "modifyKeys") {

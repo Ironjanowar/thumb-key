@@ -186,7 +186,7 @@
     <string name="macro_mode_immediate">Inmediata</string>
     <string name="macro_mode_separator">Después de espacio o puntuación</string>
     <string name="macro_prefix_warning">Aviso: una clave inmediata más corta puede expandirse antes de completar esta clave.</string>
-    <string name="macro_validation_error">Corrige la clave o las expansiones antes de guardar. La clave solo admite letras, marcas y números Unicode.</string>
+    <string name="macro_validation_error">Corrige la clave o las expansiones antes de guardar. La clave no puede estar vacía ni contener espacios.</string>
     <string name="macro_undo">Deshacer expansión</string>
     <string name="macro_delete_confirm_title">¿Eliminar macro?</string>
     <string name="macro_delete_confirm_text">Se eliminarán la clave y todas sus expansiones.</string>

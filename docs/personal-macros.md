@@ -10,7 +10,9 @@ Settings → **Personal macros** → **+**. Each macro has a key and one or more
 - **Several expansions** — the macro is always **Manual**: the options appear as a row of buttons above the keyboard and you pick one. Adding a second expansion switches the macro to manual and the automatic triggers are disabled with an explanation.
 - **Match uppercase and lowercase exactly** is off by default, so `jj`, `JJ` and `Jj` all trigger the same macro. Turning it on makes each spelling its own key.
 
-A key matches only at the start of a word — after a space, a line break, punctuation or the start of the field. `relojjj` never triggers a `jj` macro.
+A key can be any non-empty text that does not contain a space, a line break or any other whitespace character — letters, numbers, punctuation, symbols, emoji or a mixture, such as `@ME`, `#tag`, `.` or `🙂`. Whitespace is excluded because a space is exactly what separates the key from the text around it, so a key built from it could never be recognised. A badly chosen key (one that collides with your normal typing) is accepted; it is up to you.
+
+A key matches only at the start of a word — after a space, a line break, punctuation or the start of the field. The rule applies to the key's **first character**: the character immediately before it must be a boundary (whitespace or punctuation), or the key must begin the field. So `relojjj` never triggers a `jj` macro, and a symbol key such as `@ME` expands after a space or at the start of the field ( `@ME`, `@ME`) but never glued to a letter (`hola@ME`).
 
 ## Typing with macros
 

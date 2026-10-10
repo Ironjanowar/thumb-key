@@ -52,6 +52,43 @@ class MacroMatcherTest {
         assertEquals(2 until 4, afterBoundary?.keyRange)
     }
 
+    @Test fun `symbol-leading mixed key fires at a word start and not after a letter`() {
+        val atMe = MacroDefinition(30, "@ME", listOf("you@example.com"), false, MacroMode.IMMEDIATE)
+        assertEquals(1 until 4, MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot(" @ME", 4, 4), "E")?.keyRange)
+        assertEquals(0 until 3, MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot("@ME", 3, 3), "E")?.keyRange)
+        assertNull(MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot("hola@ME", 7, 7), "E"))
+        assertNull(MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot("1@ME", 4, 4), "E"))
+    }
+
+    @Test fun `caseless symbol key matches a differently cased typing`() {
+        val atMe = MacroDefinition(31, "@ME", listOf("x"), false, MacroMode.IMMEDIATE)
+        val match = MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot(" @me", 4, 4), "e")
+        assertEquals("@me", match?.originalKey)
+        assertEquals(1 until 4, match?.keyRange)
+    }
+
+    @Test fun `symbol key with exact case matches as typed`() {
+        val atMe = MacroDefinition(32, "@ME", listOf("x"), true, MacroMode.IMMEDIATE)
+        assertEquals(1 until 4, MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot(" @ME", 4, 4), "E")?.keyRange)
+        assertNull(MacroMatcher.matchAutomatic(listOf(atMe), MacroSnapshot(" @me", 4, 4), "e"))
+    }
+
+    @Test fun `punctuation-only key fires at a word start and not after a letter or digit`() {
+        val dot = MacroDefinition(33, ".", listOf("full stop"), false, MacroMode.IMMEDIATE)
+        assertEquals(0 until 1, MacroMatcher.matchAutomatic(listOf(dot), MacroSnapshot(".", 1, 1), ".")?.keyRange)
+        assertEquals(1 until 2, MacroMatcher.matchAutomatic(listOf(dot), MacroSnapshot(" .", 2, 2), ".")?.keyRange)
+        assertNull(MacroMatcher.matchAutomatic(listOf(dot), MacroSnapshot("a.", 2, 2), "."))
+        assertNull(MacroMatcher.matchAutomatic(listOf(dot), MacroSnapshot("1.", 2, 2), "."))
+    }
+
+    @Test fun `emoji key fires at a word start and not after a letter`() {
+        val smile = MacroDefinition(34, "🙂", listOf(":-)"), false, MacroMode.IMMEDIATE)
+        val match = MacroMatcher.matchAutomatic(listOf(smile), MacroSnapshot(" 🙂", 3, 3), "🙂")
+        assertEquals("🙂", match?.originalKey)
+        assertEquals(1 until 3, match?.keyRange)
+        assertNull(MacroMatcher.matchAutomatic(listOf(smile), MacroSnapshot("a🙂", 3, 3), "🙂"))
+    }
+
     @Test fun `manual match requires cursor immediately after complete key`() {
         assertEquals(
             listOf("Hola", "Buenas", "¿Qué tal?"),

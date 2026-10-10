@@ -79,42 +79,36 @@ object MacroMatcher {
             if (macro.caseSensitive) {
                 end - macro.key.length
             } else {
-                wordStart(text, end)
+                // Range discovery cannot use the key's length for a caseless key: Unicode folding may
+                // change it (ß -> SS). Walk back over code points until the folded key length is
+                // consumed; the start of the key is wherever that lands.
+                caselessStart(text, end, MacroValidation.fold(macro.key))
             }
-        if (start < 0) return null
+        if (start == null || start < 0) return null
         val actual = text.substring(start, end)
         val equal = if (macro.caseSensitive) actual == macro.key else MacroValidation.fold(actual) == MacroValidation.fold(macro.key)
         if (!equal || !isWordBoundary(text, start)) return null
         return start until end
     }
 
-    private fun wordStart(
-        text: String,
-        end: Int,
-    ): Int {
-        var offset = end
-        while (offset > 0) {
-            val cluster = clusterStart(text, offset)
-            if (isBoundaryCodePoint(text.codePointAt(cluster))) return offset
-            offset = cluster
-        }
-        return 0
-    }
-
     /**
-     * Start index of the base character (plus any combining marks) whose cluster ends at [end]. A
-     * combining mark belongs to the base character it follows, so it never begins a word.
+     * Start index of the key for a caseless match ending at [end], derived from the folded length of
+     * [target] rather than the key's raw length. Folding is applied per code point, so lengths add up;
+     * returns null when the folded text ending at [end] cannot be exactly [target] long.
      */
-    private fun clusterStart(
+    private fun caselessStart(
         text: String,
         end: Int,
-    ): Int {
+        target: String,
+    ): Int? {
+        var remaining = target.length
         var offset = end
-        while (offset > 0 && isCombiningMark(text.codePointBefore(offset))) {
-            offset -= Character.charCount(text.codePointBefore(offset))
+        while (offset > 0 && remaining > 0) {
+            val codePoint = text.codePointBefore(offset)
+            offset -= Character.charCount(codePoint)
+            remaining -= MacroValidation.fold(String(Character.toChars(codePoint))).length
         }
-        if (offset == 0) return 0
-        return offset - Character.charCount(text.codePointBefore(offset))
+        return if (remaining == 0) offset else null
     }
 
     private fun isWordBoundary(

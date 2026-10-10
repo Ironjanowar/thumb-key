@@ -20,7 +20,7 @@ object MacroValidation {
     ): MacroValidationResult {
         val errors = mutableSetOf<MacroValidationError>()
         val warnings = mutableSetOf<MacroValidationWarning>()
-        if (macro.key.isEmpty() || !macro.key.codePoints().allMatch { Character.isLetterOrDigit(it) || isMark(it) }) {
+        if (macro.key.isEmpty() || macro.key.codePoints().anyMatch { isSeparatorCodePoint(it) }) {
             errors += MacroValidationError.INVALID_KEY
         }
         if (macro.expansions.isEmpty()) errors += MacroValidationError.EMPTY_EXPANSIONS
@@ -40,13 +40,11 @@ object MacroValidation {
         return MacroValidationResult(errors, warnings)
     }
 
-    private fun isMark(codePoint: Int): Boolean =
-        Character.getType(codePoint) in
-            setOf(
-                Character.NON_SPACING_MARK.toInt(),
-                Character.COMBINING_SPACING_MARK.toInt(),
-                Character.ENCLOSING_MARK.toInt(),
-            )
+    /**
+     * A key may not contain whitespace or a line break: those code points are exactly what the macro
+     * engine reads as a separator, so a key built from them could never be recognised.
+     */
+    private fun isSeparatorCodePoint(codePoint: Int): Boolean = Character.isWhitespace(codePoint) || Character.isSpaceChar(codePoint)
 
     private fun domainsOverlap(
         a: MacroDefinition,

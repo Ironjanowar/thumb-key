@@ -14,9 +14,26 @@ class MacroValidationTest {
     }
 
     @Test
-    fun `empty and punctuated keys and empty expansions are rejected`() {
-        assertTrue(MacroValidation.validate(MacroDefinition(key = "", expansions = listOf("x")), emptyList()).errors.isNotEmpty())
-        assertTrue(MacroValidation.validate(MacroDefinition(key = "a-b", expansions = listOf("x")), emptyList()).errors.isNotEmpty())
+    fun `any non-empty key without whitespace is accepted, including symbols and mixed keys`() {
+        listOf("@ME", "@@", "#tag", ".", "!", "?!", "🙂", "@", "a@b", "a-b").forEach { key ->
+            assertTrue(
+                "[$key] must be accepted",
+                MacroValidation.validate(MacroDefinition(key = key, expansions = listOf("x")), emptyList()).errors.isEmpty(),
+            )
+        }
+    }
+
+    @Test
+    fun `empty keys and keys containing whitespace or line breaks are rejected`() {
+        listOf("", " ", "a b", "\u00a0", "@\u00a0ME", "a\nb", "a\tb").forEach { key ->
+            assertTrue(
+                "[$key] must be rejected",
+                MacroValidation
+                    .validate(MacroDefinition(key = key, expansions = listOf("x")), emptyList())
+                    .errors
+                    .contains(MacroValidationError.INVALID_KEY),
+            )
+        }
         assertTrue(MacroValidation.validate(MacroDefinition(key = "a", expansions = listOf("")), emptyList()).errors.isNotEmpty())
     }
 
@@ -66,6 +83,15 @@ class MacroValidationTest {
                 .warnings
                 .contains(MacroValidationWarning.IMMEDIATE_PREFIX),
         )
+    }
+
+    @Test
+    fun `immediate prefix warning fires for a symbol key and its symbol prefix`() {
+        val immediateAt = MacroDefinition(1, key = "@", expansions = listOf("at"), mode = MacroMode.IMMEDIATE)
+        val atMe = MacroDefinition(2, key = "@ME", expansions = listOf("mail"))
+        val result = MacroValidation.validate(atMe, listOf(immediateAt))
+        assertTrue(result.errors.isEmpty())
+        assertTrue(result.warnings.contains(MacroValidationWarning.IMMEDIATE_PREFIX))
     }
 
     @Test

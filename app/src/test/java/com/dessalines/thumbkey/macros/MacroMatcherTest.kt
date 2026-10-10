@@ -24,6 +24,25 @@ class MacroMatcherTest {
         assertEquals(",", comma.separator)
     }
 
+    @Test fun `separator trigger fires on a multi-char commit ending in punctuation`() {
+        // A processed commit may carry the key plus the trailing separator in one chunk.
+        val match = MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJ.", 3, 3), "JJ.")
+        assertEquals(".", match?.separator)
+        assertEquals(0 until 2, match?.keyRange)
+        assertEquals("JJ", match?.originalKey)
+    }
+
+    @Test fun `separator trigger uses only the trailing separator run of a chunk`() {
+        // The chunk "J." completes the key and carries the separator in the same commit.
+        val match = MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJ.", 3, 3), "J.")
+        assertEquals(".", match?.separator)
+        assertEquals(0 until 2, match?.keyRange)
+        // A non-separator character between the key and the trailing run breaks the trigger.
+        assertNull(MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJa.", 4, 4), "a."))
+        // A chunk with no trailing separator does not trigger.
+        assertNull(MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJx", 3, 3), "x"))
+    }
+
     @Test fun `unicode space separators trigger and establish word boundaries`() {
         val nbsp = "\u00a0"
         val trigger = MacroMatcher.matchAutomatic(listOf(separated), MacroSnapshot("JJ$nbsp", 3, 3), nbsp)

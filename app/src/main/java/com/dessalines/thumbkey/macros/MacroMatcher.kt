@@ -39,7 +39,11 @@ object MacroMatcher {
                     if (macro.mode ==
                         MacroMode.ON_SEPARATOR
                     ) {
-                        directlyTypedText.takeIf(::isSeparator) ?: return@mapNotNull null
+                        // The trigger is the actual separator run at the end of the confirmed
+                        // chunk, which may also carry the last key characters (for example a
+                        // chunk produced by a text processor or a custom key), not only a chunk
+                        // made entirely of separators.
+                        trailingSeparators(directlyTypedText).takeIf(String::isNotEmpty) ?: return@mapNotNull null
                     } else {
                         ""
                     }
@@ -111,6 +115,20 @@ object MacroMatcher {
             value.codePoints().allMatch { cp ->
                 isBoundaryCodePoint(cp)
             }
+
+    /**
+     * The maximal run of separator code points at the end of a confirmed commit. The rest of the
+     * chunk (if any) is key text and stays part of the matched word.
+     */
+    private fun trailingSeparators(value: String): String {
+        var start = value.length
+        while (start > 0) {
+            val cp = value.codePointBefore(start)
+            if (!isBoundaryCodePoint(cp)) break
+            start -= Character.charCount(cp)
+        }
+        return value.substring(start)
+    }
 
     private fun isBoundaryCodePoint(cp: Int): Boolean =
         Character.isWhitespace(cp) || Character.isSpaceChar(cp) || Character.getType(cp) in punctuationTypes

@@ -96,6 +96,31 @@ class MacroMatcherTest {
         )
     }
 
+    @Test fun `a combining mark attached to the boundary still starts a word`() {
+        val acute = "\u0301"
+        val caselessBoundary =
+            MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot(".${acute}JJ", 4, 4), "J")
+        assertEquals(2 until 4, caselessBoundary?.keyRange)
+        val sensitiveBoundary =
+            MacroMatcher.matchAutomatic(
+                listOf(immediate.copy(caseSensitive = true)),
+                MacroSnapshot(".${acute}JJ", 4, 4),
+                "J",
+            )
+        assertEquals(2 until 4, sensitiveBoundary?.keyRange)
+    }
+
+    @Test fun `several marks on a boundary cluster are treated as one boundary`() {
+        val marks = "\u0301\u0302"
+        val match = MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot(".${marks}JJ", 5, 5), "J")
+        assertEquals(3 until 5, match?.keyRange)
+    }
+
+    @Test fun `a mark inside a word does not create a word boundary`() {
+        val acute = "\u0301"
+        assertNull(MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot("x${acute}JJ", 4, 4), "J"))
+    }
+
     @Test fun `send actions and selected snapshots never match`() {
         assertNull(MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot("JJ", 2, 2), null))
         assertNull(MacroMatcher.matchAutomatic(listOf(immediate), MacroSnapshot("JJ", 0, 2), "J"))

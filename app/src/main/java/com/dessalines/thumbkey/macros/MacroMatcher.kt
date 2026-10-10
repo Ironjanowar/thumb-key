@@ -94,11 +94,27 @@ object MacroMatcher {
     ): Int {
         var offset = end
         while (offset > 0) {
-            val cp = text.codePointBefore(offset)
-            if (isBoundaryCodePoint(cp)) break
-            offset -= Character.charCount(cp)
+            val cluster = clusterStart(text, offset)
+            if (isBoundaryCodePoint(text.codePointAt(cluster))) return offset
+            offset = cluster
         }
-        return offset
+        return 0
+    }
+
+    /**
+     * Start index of the base character (plus any combining marks) whose cluster ends at [end]. A
+     * combining mark belongs to the base character it follows, so it never begins a word.
+     */
+    private fun clusterStart(
+        text: String,
+        end: Int,
+    ): Int {
+        var offset = end
+        while (offset > 0 && isCombiningMark(text.codePointBefore(offset))) {
+            offset -= Character.charCount(text.codePointBefore(offset))
+        }
+        if (offset == 0) return 0
+        return offset - Character.charCount(text.codePointBefore(offset))
     }
 
     private fun isWordBoundary(
@@ -106,9 +122,22 @@ object MacroMatcher {
         offset: Int,
     ): Boolean {
         if (offset == 0) return true
-        val cp = text.codePointBefore(offset)
-        return isBoundaryCodePoint(cp)
+        var base = offset
+        while (base > 0 && isCombiningMark(text.codePointBefore(base))) {
+            base -= Character.charCount(text.codePointBefore(base))
+        }
+        // Only combining marks with no base character: not a word boundary.
+        if (base == 0) return false
+        return isBoundaryCodePoint(text.codePointBefore(base))
     }
+
+    private fun isCombiningMark(codePoint: Int): Boolean =
+        Character.getType(codePoint) in
+            setOf(
+                Character.NON_SPACING_MARK.toInt(),
+                Character.COMBINING_SPACING_MARK.toInt(),
+                Character.ENCLOSING_MARK.toInt(),
+            )
 
     fun isSeparator(value: String): Boolean =
         value.isNotEmpty() &&

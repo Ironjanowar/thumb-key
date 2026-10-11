@@ -1,0 +1,428 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 30,
+    "identityHash": "9f2010270cd82cb3bb128740d82c3330",
+    "entities": [
+      {
+        "tableName": "AppSettings",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `key_size_defunct` INTEGER NOT NULL DEFAULT 64, `key_width_defunct` INTEGER, `animation_speed` INTEGER NOT NULL DEFAULT 250, `animation_helper_speed` INTEGER NOT NULL DEFAULT 250, `position` INTEGER NOT NULL DEFAULT 0, `auto_capitalize` INTEGER NOT NULL DEFAULT 1, `keyboard_layout` INTEGER NOT NULL DEFAULT 0, `vibrate_on_tap` INTEGER NOT NULL DEFAULT 1, `slide_enabled` INTEGER NOT NULL DEFAULT 0, `slide_cursor_movement_mode` INTEGER NOT NULL DEFAULT 0, `slide_spacebar_deadzone_enabled` INTEGER NOT NULL DEFAULT 1, `slide_backspace_deadzone_enabled` INTEGER NOT NULL DEFAULT 1, `sound_on_tap` INTEGER NOT NULL DEFAULT 0, `theme` INTEGER NOT NULL DEFAULT 0, `theme_color` INTEGER NOT NULL DEFAULT 0, `viewed_changelog` INTEGER NOT NULL DEFAULT 0, `min_swipe_length` INTEGER NOT NULL DEFAULT 40, `slide_sensitivity` INTEGER NOT NULL DEFAULT 9, `pushup_size` INTEGER NOT NULL DEFAULT 0, `hide_letters` INTEGER NOT NULL DEFAULT 0, `keyboard_layouts` TEXT NOT NULL DEFAULT '0', `key_borders` INTEGER NOT NULL DEFAULT 1, `spacebar_multitaps` INTEGER NOT NULL DEFAULT 1, `hide_symbols` INTEGER NOT NULL DEFAULT 0, `last_version_code_viewed` INTEGER NOT NULL DEFAULT 0, `backdrop_enabled` INTEGER NOT NULL DEFAULT 0, `key_padding` INTEGER NOT NULL DEFAULT 0, `key_border_width` INTEGER NOT NULL DEFAULT 1, `key_radius` INTEGER NOT NULL DEFAULT 0, `drag_return_enabled` INTEGER NOT NULL DEFAULT 1, `circular_drag_enabled` INTEGER NOT NULL DEFAULT 1, `clockwise_drag_action` INTEGER NOT NULL DEFAULT 0, `counterclockwise_drag_action` INTEGER NOT NULL DEFAULT 1, `ghost_keys_enabled` INTEGER NOT NULL DEFAULT 0, `slide_hold_enabled` INTEGER NOT NULL DEFAULT 0, `key_modifications` TEXT NOT NULL DEFAULT '', `auto_size_keys` INTEGER NOT NULL DEFAULT 1, `non_square_keys` INTEGER NOT NULL DEFAULT 0, `key_width_v18` INTEGER NOT NULL DEFAULT 64, `key_height_v18` INTEGER NOT NULL DEFAULT 64, `ignore_bottom_padding` INTEGER NOT NULL DEFAULT 0, `show_toast_on_layout_switch` INTEGER NOT NULL DEFAULT 1, `disable_fullscreen_editor` INTEGER NOT NULL DEFAULT 0, `vibrate_on_slide` INTEGER NOT NULL DEFAULT 1, `clipboard_history_enabled` INTEGER NOT NULL DEFAULT 0, `clipboard_auto_cleanup_enabled` INTEGER NOT NULL DEFAULT 1, `clipboard_cleanup_after_minutes` INTEGER NOT NULL DEFAULT 120, `clipboard_size_limit_enabled` INTEGER NOT NULL DEFAULT 1, `clipboard_max_size` INTEGER NOT NULL DEFAULT 20, `position_padding` INTEGER NOT NULL DEFAULT 0, `use_private_clipboard` INTEGER NOT NULL DEFAULT 0, `show_on_screen_keyboard` INTEGER NOT NULL DEFAULT 0, `switch_to_letters_after_space` INTEGER NOT NULL DEFAULT 0, `editing_mode_enabled` INTEGER NOT NULL DEFAULT 0, `dictation_enabled` INTEGER NOT NULL DEFAULT 0, `dictation_language` TEXT NOT NULL DEFAULT 'es', `dictation_model` TEXT NOT NULL DEFAULT 'base')",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "keySizeDefunct",
+            "columnName": "key_size_defunct",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "64"
+          },
+          {
+            "fieldPath": "keyWidthDefunct",
+            "columnName": "key_width_defunct",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "animationSpeed",
+            "columnName": "animation_speed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "250"
+          },
+          {
+            "fieldPath": "animationHelperSpeed",
+            "columnName": "animation_helper_speed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "250"
+          },
+          {
+            "fieldPath": "position",
+            "columnName": "position",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "autoCapitalize",
+            "columnName": "auto_capitalize",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "keyboardLayout",
+            "columnName": "keyboard_layout",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "vibrateOnTap",
+            "columnName": "vibrate_on_tap",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "slideEnabled",
+            "columnName": "slide_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "slideCursorMovementMode",
+            "columnName": "slide_cursor_movement_mode",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "slideSpacebarDeadzoneEnabled",
+            "columnName": "slide_spacebar_deadzone_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "slideBackspaceDeadzoneEnabled",
+            "columnName": "slide_backspace_deadzone_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "soundOnTap",
+            "columnName": "sound_on_tap",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "theme",
+            "columnName": "theme",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "themeColor",
+            "columnName": "theme_color",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "viewedChangelog",
+            "columnName": "viewed_changelog",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "minSwipeLength",
+            "columnName": "min_swipe_length",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "40"
+          },
+          {
+            "fieldPath": "slideSensitivity",
+            "columnName": "slide_sensitivity",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "9"
+          },
+          {
+            "fieldPath": "pushupSize",
+            "columnName": "pushup_size",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "hideLetters",
+            "columnName": "hide_letters",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "keyboardLayouts",
+            "columnName": "keyboard_layouts",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'0'"
+          },
+          {
+            "fieldPath": "keyBorders",
+            "columnName": "key_borders",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "spacebarMultiTaps",
+            "columnName": "spacebar_multitaps",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "hideSymbols",
+            "columnName": "hide_symbols",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "lastVersionCodeViewed",
+            "columnName": "last_version_code_viewed",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "backdropEnabled",
+            "columnName": "backdrop_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "keyPadding",
+            "columnName": "key_padding",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "keyBorderWidth",
+            "columnName": "key_border_width",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "keyRadius",
+            "columnName": "key_radius",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "dragReturnEnabled",
+            "columnName": "drag_return_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "circularDragEnabled",
+            "columnName": "circular_drag_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "clockwiseDragAction",
+            "columnName": "clockwise_drag_action",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "counterclockwiseDragAction",
+            "columnName": "counterclockwise_drag_action",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "ghostKeysEnabled",
+            "columnName": "ghost_keys_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "slideHoldEnabled",
+            "columnName": "slide_hold_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "keyModifications",
+            "columnName": "key_modifications",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "''"
+          },
+          {
+            "fieldPath": "autoSizeKeys",
+            "columnName": "auto_size_keys",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "nonSquareKeys",
+            "columnName": "non_square_keys",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "keyWidth",
+            "columnName": "key_width_v18",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "64"
+          },
+          {
+            "fieldPath": "keyHeight",
+            "columnName": "key_height_v18",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "64"
+          },
+          {
+            "fieldPath": "ignoreBottomPadding",
+            "columnName": "ignore_bottom_padding",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "showToastOnLayoutSwitch",
+            "columnName": "show_toast_on_layout_switch",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "disableFullscreenEditor",
+            "columnName": "disable_fullscreen_editor",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "vibrateOnSlide",
+            "columnName": "vibrate_on_slide",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "clipboardHistoryEnabled",
+            "columnName": "clipboard_history_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "clipboardAutoCleanupEnabled",
+            "columnName": "clipboard_auto_cleanup_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "clipboardCleanupAfterMinutes",
+            "columnName": "clipboard_cleanup_after_minutes",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "120"
+          },
+          {
+            "fieldPath": "clipboardSizeLimitEnabled",
+            "columnName": "clipboard_size_limit_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "1"
+          },
+          {
+            "fieldPath": "clipboardMaxSize",
+            "columnName": "clipboard_max_size",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "20"
+          },
+          {
+            "fieldPath": "positionPadding",
+            "columnName": "position_padding",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "usePrivateClipboard",
+            "columnName": "use_private_clipboard",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "showOnScreenKeyboard",
+            "columnName": "show_on_screen_keyboard",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "switchToLettersAfterSpace",
+            "columnName": "switch_to_letters_after_space",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "editingModeEnabled",
+            "columnName": "editing_mode_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "dictationEnabled",
+            "columnName": "dictation_enabled",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "0"
+          },
+          {
+            "fieldPath": "dictationLanguage",
+            "columnName": "dictation_language",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'es'"
+          },
+          {
+            "fieldPath": "dictationModel",
+            "columnName": "dictation_model",
+            "affinity": "TEXT",
+            "notNull": true,
+            "defaultValue": "'base'"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9f2010270cd82cb3bb128740d82c3330')"
+    ]
+  }
+}

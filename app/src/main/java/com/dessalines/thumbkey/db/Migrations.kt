@@ -320,3 +320,12 @@ val MIGRATION_28_29 =
             )
         }
     }
+
+val MIGRATION_29_30 =
+    object : Migration(29, 30) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE AppSettings ADD COLUMN dictation_enabled INTEGER NOT NULL DEFAULT $DEFAULT_DICTATION_ENABLED")
+            db.execSQL("ALTER TABLE AppSettings ADD COLUMN dictation_language TEXT NOT NULL DEFAULT '$DEFAULT_DICTATION_LANGUAGE'")
+            db.execSQL("ALTER TABLE AppSettings ADD COLUMN dictation_model TEXT NOT NULL DEFAULT '$DEFAULT_DICTATION_MODEL'")
+        }
+    }

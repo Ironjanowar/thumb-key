@@ -29,7 +29,13 @@ android {
             useSupportLibrary = true
         }
         ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
+        externalNativeBuild {
+            cmake { cppFlags += listOf("-O3", "-fvisibility=hidden") }
+        }
     }
+
+    sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")
 
     // Necessary for izzyondroid releases
     dependenciesInfo {
@@ -92,6 +98,13 @@ android {
         buildConfig = true
     }
     namespace = "com.dessalines.thumbkey"
+
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
 }
 
 dependencies {
@@ -160,4 +173,7 @@ dependencies {
 
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.robolectric:robolectric:4.16.1")
+    androidTestImplementation("androidx.room:room-testing:2.8.5")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test:runner:1.7.0")
 }

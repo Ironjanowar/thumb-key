@@ -237,6 +237,8 @@ sealed class KeyAction {
         val enable: Boolean,
     ) : KeyAction()
 
+    data object ToggleDictation : KeyAction()
+
     data class Editing(
         val command: EditingCommand,
     ) : KeyAction()

@@ -1283,6 +1283,12 @@ fun performKeyAction(
             onToggleSketchMode(enable)
         }
 
+        KeyAction.ToggleDictation -> {
+            keyboardSettings.textProcessor?.handleFinishInput(ime)
+            ime.startDictation()
+            onKeyEvent(action)
+        }
+
         is KeyAction.ToggleEditingMode -> {
             // The panel drives the app's editor, so it stays off while the keys type into a
             // field of the keyboard's own, like sketch mode's search

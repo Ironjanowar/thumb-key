@@ -1,0 +1,4 @@
+whisper.cpp is vendored from release v1.9.5, commit d1be6fde11ac6e0407606b4e42fe72d34add8037.
+Upstream: https://github.com/ggml-org/whisper.cpp
+License: MIT (see LICENSE).
+The source is built offline by app/src/main/cpp/CMakeLists.txt; Gradle does not fetch native code.

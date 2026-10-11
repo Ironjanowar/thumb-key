@@ -11,7 +11,9 @@
 .cxx
 local.properties
 app/release
-app/schemas
+app/schemas/**
+!app/schemas/com.dessalines.thumbkey.db.AppDB/
+!app/schemas/com.dessalines.thumbkey.db.AppDB/30.json
 .project
 .settings
 .classpath

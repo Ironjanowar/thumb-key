@@ -78,6 +78,9 @@ const val MAX_CLIPBOARD_MAX_SIZE = 100
 const val DEFAULT_USE_PRIVATE_CLIPBOARD = 0
 const val DEFAULT_SHOW_ON_SCREEN_KEYBOARD = 0
 const val DEFAULT_EDITING_MODE_ENABLED = 0
+const val DEFAULT_DICTATION_ENABLED = 0
+const val DEFAULT_DICTATION_LANGUAGE = "es"
+const val DEFAULT_DICTATION_MODEL = "base"
 
 @Entity
 data class AppSettings(
@@ -355,6 +358,12 @@ data class AppSettings(
         defaultValue = DEFAULT_EDITING_MODE_ENABLED.toString(),
     )
     val editingModeEnabled: Int,
+    @ColumnInfo(name = "dictation_enabled", defaultValue = "0")
+    val dictationEnabled: Int = DEFAULT_DICTATION_ENABLED,
+    @ColumnInfo(name = "dictation_language", defaultValue = "'es'")
+    val dictationLanguage: String = DEFAULT_DICTATION_LANGUAGE,
+    @ColumnInfo(name = "dictation_model", defaultValue = "'base'")
+    val dictationModel: String = DEFAULT_DICTATION_MODEL,
 )
 
 data class LayoutsUpdate(
@@ -636,7 +645,7 @@ class AppSettingsRepository(
 }
 
 @Database(
-    version = 29,
+    version = 30,
     entities = [AppSettings::class],
     exportSchema = true,
 )
@@ -687,6 +696,7 @@ abstract class AppDB : RoomDatabase() {
                             MIGRATION_26_27,
                             MIGRATION_27_28,
                             MIGRATION_28_29,
+                            MIGRATION_29_30,
                         )
                         // Necessary because it can't insert data on creation
                         .addCallback(

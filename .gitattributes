@@ -1,0 +1,3 @@
+# Vendored third-party source is kept byte-for-byte as pinned upstream; its
+# whitespace is not ours to normalize and must not fail `git diff --check`.
+third_party/whisper.cpp/** -whitespace

@@ -31,6 +31,7 @@ import com.dessalines.thumbkey.ui.components.settings.about.AboutScreen
 import com.dessalines.thumbkey.ui.components.settings.backupandrestore.BackupAndRestoreScreen
 import com.dessalines.thumbkey.ui.components.settings.behavior.BehaviorScreen
 import com.dessalines.thumbkey.ui.components.settings.clipboard.ClipboardSettingsScreen
+import com.dessalines.thumbkey.ui.components.settings.dictation.DictationSettingsScreen
 import com.dessalines.thumbkey.ui.components.settings.lookandfeel.LookAndFeelScreen
 import com.dessalines.thumbkey.ui.components.settings.macros.MacroEditorScreen
 import com.dessalines.thumbkey.ui.components.settings.macros.MacroSettingsScreen
@@ -172,6 +173,9 @@ class MainActivity : AppCompatActivity() {
                             appSettingsViewModel = appSettingsViewModel,
                             clipboardRepository = (application as ThumbkeyApplication).clipboardRepository,
                         )
+                    }
+                    composable(route = "dictation") {
+                        DictationSettingsScreen(navController, appSettingsViewModel)
                     }
                     composable(route = "macros") {
                         MacroSettingsScreen(navController, macroSettingsViewModel)

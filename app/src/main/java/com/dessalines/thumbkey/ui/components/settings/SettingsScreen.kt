@@ -15,6 +15,7 @@ import androidx.compose.material.icons.outlined.ContentPaste
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.InstallMobile
 import androidx.compose.material.icons.outlined.KeyboardAlt
+import androidx.compose.material.icons.outlined.Mic
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Restore
 import androidx.compose.material.icons.outlined.TextFields
@@ -174,6 +175,12 @@ fun SettingsScreen(
                         summary = { Text(stringResource(R.string.macros_summary)) },
                         icon = { Icon(Icons.Outlined.TextFields, contentDescription = null) },
                         onClick = { navController.navigate("macros") },
+                    )
+                    Preference(
+                        title = { Text(stringResource(R.string.dictation_title)) },
+                        summary = { Text(stringResource(R.string.dictation_summary)) },
+                        icon = { Icon(Icons.Outlined.Mic, contentDescription = null) },
+                        onClick = { navController.navigate("dictation") },
                     )
                     Preference(
                         title = {

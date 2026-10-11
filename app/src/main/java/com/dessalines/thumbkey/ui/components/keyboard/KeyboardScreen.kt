@@ -48,6 +48,7 @@ import com.dessalines.thumbkey.db.DEFAULT_CIRCULAR_DRAG_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_CLIPBOARD_HISTORY_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_CLOCKWISE_DRAG_ACTION
 import com.dessalines.thumbkey.db.DEFAULT_COUNTERCLOCKWISE_DRAG_ACTION
+import com.dessalines.thumbkey.db.DEFAULT_DICTATION_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_DRAG_RETURN_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_EDITING_MODE_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_GHOST_KEYS_ENABLED
@@ -76,6 +77,7 @@ import com.dessalines.thumbkey.db.DEFAULT_SPACEBAR_MULTITAPS
 import com.dessalines.thumbkey.db.DEFAULT_SWITCH_TO_LETTERS_AFTER_SPACE
 import com.dessalines.thumbkey.db.DEFAULT_VIBRATE_ON_SLIDE
 import com.dessalines.thumbkey.db.DEFAULT_VIBRATE_ON_TAP
+import com.dessalines.thumbkey.dictation.DictationState
 import com.dessalines.thumbkey.keyboards.BACKSPACE_KEY_ITEM
 import com.dessalines.thumbkey.keyboards.EMOJI_BACK_KEY_ITEM
 import com.dessalines.thumbkey.keyboards.KB_EN_THUMBKEY_MAIN
@@ -114,6 +116,8 @@ fun KeyboardScreen(
 ) {
     val ctx = LocalContext.current as IMEService
     val macroState by ctx.macroController.state.collectAsState()
+    val dictationState by ctx.dictationRuntime.controller.state
+        .collectAsState()
 
     val layout =
         KeyboardLayout.entries.sortedBy { it.ordinal }[
@@ -124,7 +128,8 @@ fun KeyboardScreen(
     val keyMods = settings?.keyModifications
     val editingModeEnabled =
         (settings?.editingModeEnabled ?: DEFAULT_EDITING_MODE_ENABLED).toBool()
-    val keyboardDefinition = resolveKeyboardDefinition(layout, keyMods, editingModeEnabled)
+    val dictationEnabled = (settings?.dictationEnabled ?: DEFAULT_DICTATION_ENABLED).toBool()
+    val keyboardDefinition = resolveKeyboardDefinition(layout, keyMods, editingModeEnabled, dictationEnabled)
 
     var mode by remember {
         val startMode =
@@ -1177,7 +1182,9 @@ fun KeyboardScreen(
             }
         }
 
-        if (sketch.searching) {
+        if (dictationState !is DictationState.Idle) {
+            DictationPanel(dictationState, ctx::stopDictation, ctx::cancelDictation)
+        } else if (sketch.searching) {
             // Sketch mode's search, typed with the layout's keys below it
             Column {
                 SketchSearch(

@@ -22,6 +22,9 @@ import com.dessalines.thumbkey.db.DEFAULT_CLIPBOARD_HISTORY_ENABLED
 import com.dessalines.thumbkey.db.DEFAULT_DISABLE_FULLSCREEN_EDITOR
 import com.dessalines.thumbkey.db.DEFAULT_SHOW_ON_SCREEN_KEYBOARD
 import com.dessalines.thumbkey.db.DEFAULT_USE_PRIVATE_CLIPBOARD
+import com.dessalines.thumbkey.dictation.AndroidDictationEditor
+import com.dessalines.thumbkey.dictation.DictationFieldPolicy
+import com.dessalines.thumbkey.dictation.DictationRuntime
 import com.dessalines.thumbkey.editing.AndroidEditingPort
 import com.dessalines.thumbkey.editing.EditingController
 import com.dessalines.thumbkey.macros.AndroidMacroEditorPort
@@ -85,6 +88,32 @@ class IMEService :
             ),
         )
     }
+    private var inputGeneration = 0L
+    val dictationRuntime: DictationRuntime by lazy {
+        DictationRuntime(
+            this,
+            lifecycleScope,
+            AndroidDictationEditor(
+                connection = { runCatching { appInputConnection }.getOrNull() },
+                fieldToken = { "$inputGeneration:${System.identityHashCode(runCatching { appInputConnection }.getOrNull())}" },
+                selection = { selectionStart to selectionEnd },
+                beforeCommit = {
+                    macroController.beforeExplicitEdit()
+                    currentKeyboardDefinition?.settings?.textProcessor?.handleFinishInput(this)
+                },
+            ),
+        )
+    }
+
+    fun startDictation() {
+        val settings = (application as ThumbkeyApplication).appSettingsRepository.appSettings.value ?: return
+        if (!settings.dictationEnabled.toBool() || isTypingIntoOwnField || !DictationFieldPolicy.allows(currentInputEditorInfo)) return
+        dictationRuntime.start(settings.dictationModel, settings.dictationLanguage)
+    }
+
+    fun stopDictation() = dictationRuntime.stop()
+
+    fun cancelDictation() = dictationRuntime.cancel()
 
     // While set, the keys type into this field of the keyboard's own, like sketch mode's
     // search, instead of the app's
@@ -123,6 +152,8 @@ class IMEService :
         restarting: Boolean,
     ) {
         super.onStartInput(attribute, restarting)
+        inputGeneration++
+        cancelDictation()
         editingController.startSession()
         macroController.startSession()
         macroCompositionActive = false
@@ -158,6 +189,7 @@ class IMEService :
     }
 
     override fun onDestroy() {
+        dictationRuntime.close()
         clipboardManager?.stopListening()
         clipboardManager = null
         super.onDestroy()
@@ -226,6 +258,7 @@ class IMEService :
     }
 
     override fun onFinishInputView(finishingInput: Boolean) {
+        cancelDictation()
         // Must run before super, which commits any composing text as it stands.
         // Running after it would let the processor write its pending text a second time.
         currentKeyboardDefinition?.settings?.textProcessor?.handleFinishInput(this)
@@ -233,6 +266,7 @@ class IMEService :
     }
 
     override fun onFinishInput() {
+        cancelDictation()
         editingController.finishSession()
         macroController.finishSession()
         macroCompositionActive = false
@@ -249,8 +283,16 @@ class IMEService :
     ) {
         super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd, candidatesStart, candidatesEnd)
         macroCompositionActive = candidatesStart >= 0 || candidatesEnd >= 0
+        selectionStart = newSelStart
+        selectionEnd = newSelEnd
         editingController.onSelectionUpdate(newSelStart, newSelEnd)
         macroController.onSelectionChanged()
+        if (dictationRuntime.controller.cancelIfDestinationChanged()) dictationRuntime.cancel()
+    }
+
+    override fun onWindowHidden() {
+        cancelDictation()
+        super.onWindowHidden()
     }
 
     private var ignoreCursorMove: Boolean = false

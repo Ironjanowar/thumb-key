@@ -47,6 +47,7 @@ import com.dessalines.thumbkey.keyboards.TOGGLE_SHIFT_FALSE_KEYC
 import com.dessalines.thumbkey.keyboards.TOGGLE_SHIFT_TRUE_KEYC
 import com.dessalines.thumbkey.keyboards.TOGGLE_SKETCH_MODE_TRUE_KEYC
 import com.dessalines.thumbkey.keyboards.UNDO_KEYC
+import com.dessalines.thumbkey.keyboards.installDictationModeEntry
 import com.dessalines.thumbkey.keyboards.installEditingModeEntry
 import com.dessalines.thumbkey.textprocessors.ComposeComboProcessor
 import com.dessalines.thumbkey.utils.KeyAction.CommitText
@@ -73,13 +74,14 @@ fun resolveKeyboardDefinition(
     keyboardLayout: KeyboardLayout,
     keyModifications: String?,
     editingModeEnabled: Boolean = false,
+    dictationEnabled: Boolean = false,
 ): KeyboardDefinition {
     val resolved =
         keyModifications
             ?.takeIf { it.isNotEmpty() }
             ?.let { getModifiedKeyboardDefinition(keyboardLayout, it) }
             ?: keyboardLayout.keyboardDefinition
-    return installEditingModeEntry(resolved, editingModeEnabled)
+    return installDictationModeEntry(installEditingModeEntry(resolved, editingModeEnabled), dictationEnabled)
 }
 
 /**
@@ -355,6 +357,7 @@ fun getCommonKeyCFromKeyAction(keyActionSerializable: KeyActionSerializable?): K
         KeyActionSerializable.ToggleSketchMode -> TOGGLE_SKETCH_MODE_TRUE_KEYC
         KeyActionSerializable.ToggleEditingMode -> KeyC(action = KeyAction.ToggleEditingMode(true))
         KeyActionSerializable.ExitEditingMode -> KeyC(action = KeyAction.ToggleEditingMode(false))
+        KeyActionSerializable.ToggleDictation -> KeyC(action = KeyAction.ToggleDictation)
         KeyActionSerializable.ToggleCapsLock -> TOGGLE_CAPS_KEYC
         KeyActionSerializable.ToggleShiftModeTrue -> TOGGLE_SHIFT_TRUE_KEYC
         KeyActionSerializable.ToggleShiftModeFalse -> TOGGLE_SHIFT_FALSE_KEYC
@@ -584,6 +587,7 @@ enum class KeyActionSerializable {
     ToggleSketchMode,
     ToggleEditingMode,
     ExitEditingMode,
+    ToggleDictation,
     ToggleCapsLock,
     ToggleShiftModeFalse,
     ToggleShiftModeTrue,

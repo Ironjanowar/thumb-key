@@ -121,7 +121,7 @@ fun DictationSettingsScreen(
                 if (current.dictationModel == model.id) {
                     Text(stringResource(if (ready) R.string.dictation_ready else R.string.dictation_not_ready))
                     if (!ready) {
-                        if (downloadJob?.isActive == true) {
+                        if (downloadJob != null) {
                             Text(stringResource(R.string.dictation_downloading, progress.coerceAtLeast(0)))
                             Button(onClick = { downloadJob?.cancel() }) { Text(stringResource(R.string.dictation_cancel_download)) }
                         } else {

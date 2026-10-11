@@ -5,8 +5,14 @@ import android.view.inputmethod.BaseInputConnection
 import android.view.inputmethod.ExtractedText
 import android.view.inputmethod.ExtractedTextRequest
 import com.dessalines.thumbkey.dictation.models.ModelDownloader
+import com.dessalines.thumbkey.dictation.models.ModelFileCoordination
 import com.dessalines.thumbkey.dictation.models.ModelRepository
 import com.dessalines.thumbkey.dictation.models.WhisperModelCatalog
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -19,6 +25,8 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.InputStream
 import java.security.MessageDigest
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.io.path.createTempDirectory
 
@@ -166,6 +174,125 @@ class ModelIntegritySafetyTest {
             off: Int,
             len: Int,
         ): Int = delegate.read(b, off, len).also { if (it > 0) delivered += it }
+    }
+}
+
+class ModelLeaseAndDownloadCancellationTest {
+    @Test fun cancelledDownloadDoesNotPublishOrKeepItsRegistration() =
+        runBlocking {
+            val root = createTempDirectory("cancelled").toFile()
+            val payload = ByteArray(1 shl 20) { 3 }
+            val model = WhisperModelCatalog.models.first().copy(bytes = payload.size.toLong(), sha256 = sha256(payload))
+            val stream = PacedStream(payload)
+
+            val job = launch(Dispatchers.IO) { ModelDownloader(root) { stream }.download(model) { _, _ -> } }
+            assertTrue(stream.firstChunkRead.await(10, TimeUnit.SECONDS))
+            job.cancel()
+            job.join()
+
+            assertFalse("a cancelled download must not publish the model", File(root, model.fileName).exists())
+            assertFalse("a cancelled download must not leave a .part behind", File(root, "${model.fileName}.part").exists())
+
+            ModelDownloader(root) { ByteArrayInputStream(payload) }.download(model) { _, _ -> }
+            assertTrue("the cancelled download must release its registration", File(root, model.fileName).exists())
+        }
+
+    @Test fun concurrentDownloadOfTheSameModelIsRefused() =
+        runBlocking {
+            val root = createTempDirectory("concurrent").toFile()
+            val payload = ByteArray(1 shl 20) { 5 }
+            val model = WhisperModelCatalog.models.first().copy(bytes = payload.size.toLong(), sha256 = sha256(payload))
+            val stream = PacedStream(payload)
+
+            val job = launch(Dispatchers.IO) { ModelDownloader(root) { stream }.download(model) { _, _ -> } }
+            assertTrue(stream.firstChunkRead.await(10, TimeUnit.SECONDS))
+
+            val failure =
+                runCatching {
+                    ModelDownloader(root) { ByteArrayInputStream(payload) }.download(model) { _, _ -> }
+                }.exceptionOrNull()
+
+            assertTrue("a second download of the same model must be refused, got $failure", failure is IllegalStateException)
+            job.cancel()
+            job.join()
+        }
+
+    @Test fun stalePreviousSurvivesWhileItsDownloadIsInFlight() {
+        val root = createTempDirectory("previous").toFile()
+        val model = WhisperModelCatalog.models.first()
+        val part = File(root, "${model.fileName}.part")
+        val previous = File(root, "${model.fileName}.previous").apply { writeText("publish in progress") }
+        part.writeText("in flight")
+
+        ModelFileCoordination.downloadStarted(part)
+        try {
+            ModelRepository(root)
+            assertTrue("a .previous mid-publish must survive", previous.exists())
+            assertTrue("an in-flight .part must survive", part.exists())
+        } finally {
+            ModelFileCoordination.downloadFinished(part)
+        }
+    }
+
+    @Test fun cancellingWhileTheModelIsLeasedReleasesTheLease() =
+        runBlocking {
+            val root = createTempDirectory("lease").toFile()
+            val payload = ByteArray(1 shl 16) { 9 }
+            val model = WhisperModelCatalog.models.first().copy(bytes = payload.size.toLong(), sha256 = sha256(payload))
+            File(root, model.fileName).writeBytes(payload)
+            val repository = ModelRepository(root)
+
+            val leased = CompletableDeferred<Unit>()
+            val job =
+                launch(Dispatchers.IO) {
+                    repository.withModel(model) {
+                        leased.complete(Unit)
+                        delay(Long.MAX_VALUE)
+                    }
+                }
+            leased.await()
+            assertFalse("the model is leased while dictation runs", repository.delete(model))
+
+            job.cancelAndJoin()
+
+            assertTrue("cancelling dictation must release the model lease", repository.delete(model))
+        }
+
+    @Test fun cancellationDuringLeaseAcquisitionNeverStrandsTheLease() =
+        runBlocking {
+            val payload = ByteArray(1 shl 18) { 4 }
+            val model = WhisperModelCatalog.models.first().copy(bytes = payload.size.toLong(), sha256 = sha256(payload))
+            repeat(40) { attempt ->
+                val root = createTempDirectory("acquire-$attempt").toFile()
+                File(root, model.fileName).writeBytes(payload)
+                val repository = ModelRepository(root)
+                val job = launch(Dispatchers.IO) { repository.withModel(model) {} }
+                delay(attempt.toLong() % 3)
+                job.cancelAndJoin()
+                assertTrue("attempt $attempt stranded the lease", repository.delete(model))
+            }
+        }
+
+    private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+
+    private class PacedStream(
+        bytes: ByteArray,
+    ) : InputStream() {
+        private val delegate = ByteArrayInputStream(bytes)
+        val firstChunkRead = CountDownLatch(1)
+
+        override fun read(): Int = delegate.read()
+
+        override fun read(
+            b: ByteArray,
+            off: Int,
+            len: Int,
+        ): Int {
+            val read = delegate.read(b, off, minOf(len, 4096))
+            if (read > 0) firstChunkRead.countDown()
+            Thread.sleep(2)
+            return read
+        }
     }
 }
 

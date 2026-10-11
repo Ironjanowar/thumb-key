@@ -50,25 +50,22 @@ class DictationRuntime(
         val job =
             scope.launch(start = CoroutineStart.LAZY) {
                 try {
-                    val lease = withContext(Dispatchers.IO) { models.acquire(model) }
-                    try {
+                    models.withModel(model) { path ->
                         val recorded =
                             withContext(Dispatchers.IO) {
-                                current.engine.load(models.file(model).absolutePath)
+                                current.engine.load(path.absolutePath)
                                 if (!owns(current)) return@withContext RecordedAudio(ShortArray(0), false)
                                 controller.recording(current.session)
                                 current.recorder.record { controller.tick(current.session, it) }
                             }
-                        if (!owns(current)) return@launch
+                        if (!owns(current)) return@withModel
                         if (!recorded.hasSpeech) {
                             controller.complete(current.session, "")
-                            return@launch
+                            return@withModel
                         }
                         controller.transcribing(current.session)
                         val text = withContext(Dispatchers.Default) { current.engine.transcribe(recorded.samples, language) }
                         if (owns(current)) controller.complete(current.session, text)
-                    } finally {
-                        lease.close()
                     }
                 } catch (_: CancellationException) {
                     // Cancellation is the normal lifecycle path and must never surface as an error.

@@ -2,6 +2,7 @@ package com.dessalines.thumbkey.dictation
 
 import com.dessalines.thumbkey.dictation.models.ModelDownloader
 import com.dessalines.thumbkey.dictation.models.WhisperModelCatalog
+import com.dessalines.thumbkey.ui.components.settings.dictation.modelNeedsMemoryWarning
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -16,8 +17,14 @@ class DictationCoreTest {
     @Test
     fun catalogPinsExactlyTheMultilingualModels() {
         val models = WhisperModelCatalog.models
-        assertEquals(listOf("tiny", "base", "small"), models.map { it.id })
+        assertEquals(listOf("tiny", "base", "small", "turbo-q5"), models.map { it.id })
         assertEquals("base", WhisperModelCatalog.recommended.id)
+        val turbo = models.single { it.id == "turbo-q5" }
+        assertEquals("Turbo Q5 (experimental)", turbo.title)
+        assertEquals("ggml-large-v3-turbo-q5_0.bin", turbo.fileName)
+        assertEquals(574_041_195, turbo.bytes)
+        assertEquals("394221709cd5ad1f40c46e6031ca61bce88931e6e088c188294c6d5a55ffa7e2", turbo.sha256)
+        assertEquals("5359861c739e955e79d9a303bcbc70fb988958b1", turbo.revision)
         models.forEach {
             assertTrue(it.url.startsWith("https://huggingface.co/"))
             assertFalse(it.fileName.contains(".en"))
@@ -25,6 +32,14 @@ class DictationCoreTest {
             assertTrue(it.sha256.matches(Regex("[0-9a-f]{64}")))
             assertTrue(it.revision.matches(Regex("[0-9a-f]{40}")))
         }
+    }
+
+    @Test
+    fun largerModelsCarryTheMemoryAndSpeedWarning() {
+        assertFalse(modelNeedsMemoryWarning("tiny"))
+        assertFalse(modelNeedsMemoryWarning("base"))
+        assertTrue(modelNeedsMemoryWarning("small"))
+        assertTrue(modelNeedsMemoryWarning("turbo-q5"))
     }
 
     @Test

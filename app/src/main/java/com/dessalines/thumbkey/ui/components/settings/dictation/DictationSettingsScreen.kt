@@ -67,6 +67,8 @@ import java.net.URL
 
 private const val LANGUAGE_AUTO = "auto"
 
+internal fun modelNeedsMemoryWarning(id: String): Boolean = id == "small" || id == "turbo-q5"
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DictationSettingsScreen(
@@ -161,9 +163,9 @@ fun DictationSettingsScreen(
                     summary = { Text(modelLabel(selectedModel.id)) },
                     icon = { Icon(Icons.Outlined.ModelTraining, contentDescription = null) },
                 )
-                if (selectedModel.id == "small") {
+                if (modelNeedsMemoryWarning(selectedModel.id)) {
                     Preference(
-                        title = { Text(stringResource(R.string.dictation_small_memory_warning)) },
+                        title = { Text(stringResource(R.string.dictation_large_model_warning)) },
                     )
                 }
                 Preference(

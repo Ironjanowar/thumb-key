@@ -220,6 +220,6 @@
     <string name="dictation_cancel_download">Cancelar descarga</string>
     <string name="dictation_open_settings">Abrir ajustes de la aplicación en Android</string>
     <string name="dictation_model_in_use">El modelo está en uso. Detén el dictado antes de borrarlo.</string>
-    <string name="dictation_small_memory_warning">Small puede usar bastante más memoria. Usa Base salvo que hayas medido el impacto en tu dispositivo.</string>
+    <string name="dictation_large_model_warning">Este modelo puede ser más lento y usar bastante más memoria. Usa Base salvo que la mejora de precisión compense en tu dispositivo.</string>
     <string name="dictation_return">Volver al teclado</string>
 </resources>

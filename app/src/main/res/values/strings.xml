@@ -238,6 +238,6 @@
     <string name="dictation_cancel_download">Cancel download</string>
     <string name="dictation_open_settings">Open Android app settings</string>
     <string name="dictation_model_in_use">The model is currently in use. Stop dictation before deleting it.</string>
-    <string name="dictation_small_memory_warning">Small can use substantially more memory. Use Base unless you have measured the trade-off on your device.</string>
+    <string name="dictation_large_model_warning">This model can be slower and use substantially more memory. Use Base unless the accuracy improvement is worth it on your device.</string>
     <string name="dictation_return">Return to keyboard</string>
 </resources>

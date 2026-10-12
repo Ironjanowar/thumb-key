@@ -7,16 +7,25 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.RadioButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Download
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Mic
+import androidx.compose.material.icons.outlined.ModelTraining
+import androidx.compose.material.icons.outlined.OpenInNew
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,12 +37,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.AnnotatedString
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.dessalines.thumbkey.R
@@ -42,13 +50,24 @@ import com.dessalines.thumbkey.dictation.models.ModelDownloader
 import com.dessalines.thumbkey.dictation.models.ModelRepository
 import com.dessalines.thumbkey.dictation.models.WhisperModel
 import com.dessalines.thumbkey.dictation.models.WhisperModelCatalog
+import com.dessalines.thumbkey.ui.components.settings.about.SettingsDivider
+import com.dessalines.thumbkey.utils.SimpleTopAppBar
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import me.zhanghai.compose.preference.ListPreference
+import me.zhanghai.compose.preference.ListPreferenceType
+import me.zhanghai.compose.preference.Preference
+import me.zhanghai.compose.preference.ProvidePreferenceTheme
+import me.zhanghai.compose.preference.SwitchPreference
 import java.net.HttpURLConnection
 import java.net.URL
 
+private const val LANGUAGE_AUTO = "auto"
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DictationSettingsScreen(
     navController: NavController,
@@ -63,110 +82,186 @@ fun DictationSettingsScreen(
     var refresh by remember { mutableIntStateOf(0) }
     var progress by remember { mutableIntStateOf(-1) }
     var downloadJob by remember { mutableStateOf<Job?>(null) }
-    var message by remember { mutableStateOf<String?>(null) }
-    var showSettings by remember { mutableStateOf(false) }
+    var permanentDenial by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val permissionMessage = resources.getString(R.string.dictation_permission)
+    val modelInUseMessage = resources.getString(R.string.dictation_model_in_use)
 
     LaunchedEffect(refresh) {
         val values = withContext(Dispatchers.IO) { WhisperModelCatalog.models.associate { it.id to repository.isReady(it) } }
         readiness.putAll(values)
     }
 
+    fun report(text: String) {
+        scope.launch { snackbarHostState.showSnackbar(text) }
+    }
+
     val permission =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             settings?.let { viewModel.update(it.copy(dictationEnabled = if (granted) 1 else 0)) }
-            if (!granted) {
-                message = resources.getString(R.string.dictation_permission)
-                showSettings = true
+            if (granted) {
+                permanentDenial = false
+            } else {
+                report(permissionMessage)
+                permanentDenial = true
             }
         }
+
     val current = settings ?: return
-    Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { navController.popBackStack() }) { Text("←") }
-        Text(stringResource(R.string.dictation_title))
-        Text(stringResource(R.string.dictation_summary))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(current.dictationEnabled != 0, onCheckedChange = { enabled ->
-                if (!enabled) {
-                    viewModel.update(current.copy(dictationEnabled = 0))
-                } else if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
-                    PackageManager.PERMISSION_GRANTED
-                ) {
-                    viewModel.update(current.copy(dictationEnabled = 1))
-                } else {
-                    permission.launch(Manifest.permission.RECORD_AUDIO)
+    val selectedModel = WhisperModelCatalog.find(current.dictationModel) ?: WhisperModelCatalog.models.first()
+    val selectedReady = readiness[selectedModel.id] == true
+    val languageLabels = listOf("es", "en", LANGUAGE_AUTO).associateWith { resources.getString(languageLabel(it)) }
+
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = { SimpleTopAppBar(text = stringResource(R.string.dictation_title), navController = navController) },
+    ) { padding ->
+        Column(
+            modifier =
+                Modifier
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .background(color = MaterialTheme.colorScheme.surface)
+                    .imePadding(),
+        ) {
+            ProvidePreferenceTheme {
+                SwitchPreference(
+                    value = current.dictationEnabled != 0,
+                    onValueChange = { enabled ->
+                        when {
+                            !enabled -> viewModel.update(current.copy(dictationEnabled = 0))
+
+                            ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                                PackageManager.PERMISSION_GRANTED -> viewModel.update(current.copy(dictationEnabled = 1))
+
+                            else -> permission.launch(Manifest.permission.RECORD_AUDIO)
+                        }
+                    },
+                    title = { Text(stringResource(R.string.dictation_enable)) },
+                    summary = { Text(stringResource(R.string.dictation_summary)) },
+                    icon = { Icon(Icons.Outlined.Mic, contentDescription = null) },
+                )
+                ListPreference(
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    value = current.dictationLanguage,
+                    onValueChange = { viewModel.update(current.copy(dictationLanguage = it)) },
+                    values = listOf("es", "en", LANGUAGE_AUTO),
+                    valueToText = { AnnotatedString(languageLabels.getValue(it)) },
+                    title = { Text(stringResource(R.string.dictation_language)) },
+                    summary = { Text(languageLabels[current.dictationLanguage] ?: languageLabels.getValue("es")) },
+                    icon = { Icon(Icons.Outlined.Language, contentDescription = null) },
+                )
+                ListPreference(
+                    type = ListPreferenceType.DROPDOWN_MENU,
+                    value = selectedModel.id,
+                    onValueChange = { viewModel.update(current.copy(dictationModel = it)) },
+                    values = WhisperModelCatalog.models.map { it.id },
+                    valueToText = { AnnotatedString(modelLabel(it)) },
+                    title = { Text(stringResource(R.string.dictation_model)) },
+                    summary = { Text(modelLabel(selectedModel.id)) },
+                    icon = { Icon(Icons.Outlined.ModelTraining, contentDescription = null) },
+                )
+                if (selectedModel.id == "small") {
+                    Preference(
+                        title = { Text(stringResource(R.string.dictation_small_memory_warning)) },
+                    )
                 }
-            })
-            Text(stringResource(R.string.dictation_enable))
-        }
-        Text(stringResource(R.string.dictation_language))
-        listOf(
-            "es" to R.string.dictation_language_es,
-            "en" to R.string.dictation_language_en,
-            "auto" to R.string.dictation_language_auto,
-        ).forEach { (code, label) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(current.dictationLanguage == code, onClick = { viewModel.update(current.copy(dictationLanguage = code)) })
-                Text(stringResource(label))
-            }
-        }
-        Text(stringResource(R.string.dictation_model))
-        WhisperModelCatalog.models.forEach { model ->
-            val ready = readiness[model.id] == true
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    RadioButton(current.dictationModel == model.id, onClick = { viewModel.update(current.copy(dictationModel = model.id)) })
-                    Text("${model.title} — ${model.bytes / 1_048_576} MiB")
-                }
-                if (model.id == "small") Text(stringResource(R.string.dictation_small_memory_warning))
-                if (current.dictationModel == model.id) {
-                    Text(stringResource(if (ready) R.string.dictation_ready else R.string.dictation_not_ready))
-                    if (!ready) {
-                        if (downloadJob != null) {
-                            Text(stringResource(R.string.dictation_downloading, progress.coerceAtLeast(0)))
-                            Button(onClick = { downloadJob?.cancel() }) { Text(stringResource(R.string.dictation_cancel_download)) }
-                        } else {
-                            Button(onClick = {
+                Preference(
+                    title = {
+                        Text(
+                            when {
+                                downloadJob != null -> stringResource(R.string.dictation_cancel_download)
+                                selectedReady -> stringResource(R.string.dictation_delete)
+                                else -> stringResource(R.string.dictation_download, "${selectedModel.bytes / 1_048_576} MiB")
+                            },
+                        )
+                    },
+                    summary = { Text(modelStateText(selectedReady, progress)) },
+                    icon = {
+                        Icon(
+                            if (selectedReady) Icons.Outlined.DeleteOutline else Icons.Outlined.Download,
+                            contentDescription = null,
+                        )
+                    },
+                    onClick = {
+                        when {
+                            downloadJob != null -> {
+                                downloadJob?.cancel()
+                            }
+
+                            selectedReady -> {
+                                scope.launch {
+                                    val deleted = withContext(Dispatchers.IO) { repository.delete(selectedModel) }
+                                    if (!deleted) report(modelInUseMessage)
+                                    refresh++
+                                }
+                            }
+
+                            else -> {
                                 progress = 0
-                                message = null
                                 downloadJob =
                                     scope.launch {
-                                        runCatching {
-                                            withContext(Dispatchers.IO) {
-                                                ModelDownloader(repository.file(model).parentFile!!) { openHttps(it) }
-                                                    .download(model) { done, total ->
-                                                        val percent = ((done * 100) / total).toInt()
-                                                        scope.launch { progress = percent }
-                                                    }
-                                            }
-                                        }.onFailure { if (it !is kotlinx.coroutines.CancellationException) message = it.message }
+                                        val failure =
+                                            runCatching {
+                                                withContext(Dispatchers.IO) {
+                                                    ModelDownloader(repository.file(selectedModel).parentFile!!) { openHttps(it) }
+                                                        .download(selectedModel) { done, total ->
+                                                            progress = ((done * 100) / total).toInt()
+                                                        }
+                                                }
+                                            }.exceptionOrNull()
+                                        if (failure != null &&
+                                            failure !is CancellationException
+                                        ) {
+                                            report(failure.message ?: failure.toString())
+                                        }
                                         progress = -1
                                         downloadJob = null
                                         refresh++
                                     }
-                            }) { Text(stringResource(R.string.dictation_download, "${model.bytes / 1_048_576} MiB")) }
-                        }
-                    } else {
-                        Button(onClick = {
-                            scope.launch {
-                                val deleted = withContext(Dispatchers.IO) { repository.delete(model) }
-                                if (!deleted) message = resources.getString(R.string.dictation_model_in_use)
-                                refresh++
                             }
-                        }) { Text(stringResource(R.string.dictation_delete)) }
-                    }
+                        }
+                    },
+                )
+                if (permanentDenial) {
+                    SettingsDivider()
+                    Preference(
+                        title = { Text(stringResource(R.string.dictation_open_settings)) },
+                        icon = { Icon(Icons.Outlined.OpenInNew, contentDescription = null) },
+                        onClick = {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")),
+                            )
+                        },
+                    )
                 }
             }
         }
-        message?.let { Text(it) }
-        if (showSettings) {
-            Button(onClick = {
-                context.startActivity(
-                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}")),
-                )
-            }) { Text(stringResource(R.string.dictation_open_settings)) }
-        }
     }
 }
+
+private fun languageLabel(code: String): Int =
+    when (code) {
+        "en" -> R.string.dictation_language_en
+        LANGUAGE_AUTO -> R.string.dictation_language_auto
+        else -> R.string.dictation_language_es
+    }
+
+private fun modelLabel(id: String): String {
+    val model = WhisperModelCatalog.find(id) ?: WhisperModelCatalog.models.first()
+    return "${model.title} — ${model.bytes / 1_048_576} MiB"
+}
+
+@Composable
+private fun modelStateText(
+    ready: Boolean,
+    progress: Int,
+): String =
+    when {
+        progress in 0..99 -> stringResource(R.string.dictation_downloading, progress)
+        ready -> stringResource(R.string.dictation_ready)
+        else -> stringResource(R.string.dictation_not_ready)
+    }
 
 private fun openHttps(model: WhisperModel): java.io.InputStream {
     var url = URL(model.url)
